@@ -2,7 +2,7 @@ import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
 import { startCamera, stopCamera, snap, getFacing } from "./camera.js?v=2";
 import { compose, exportBlob, saveImage } from "./editor.js";
-import { uploadBlob, configured } from "./upload.js";
+import { uploadBlob, configured, listPhotos } from "./upload.js";
 const $ = s => document.querySelector(s);
 applyTheme();
 const state = { photo: null, frame: null, frames: [] };
@@ -95,7 +95,19 @@ $("#send").onclick = async () => {
     busy("Preparando sua foto..."); const b = await exportBlob(canvas);
     busy("Enviando sua foto 💕", 0); await uploadBlob(b, p => busy("Enviando sua foto 💕", p));
     busy(); $("#done").hidden = false;
+    refreshCount();
   } catch { busy(); toast("Não conseguimos enviar a foto. Verifique sua conexão e tente novamente."); }
 };
 $("#doneNew").onclick = () => { $("#done").hidden = true; show("home"); };
+async function refreshCount() {
+  if (!configured()) return;
+  try {
+    let n = 0, o = 0, page;
+    do { page = await listPhotos(o, 100); n += page.length; o += 100; } while (page.length === 100);
+    $("#photo-count").textContent = n;
+    $("#countBadge").hidden = n === 0;
+  } catch { $("#countBadge").hidden = true; }
+}
+refreshCount();
+
 show("home");
