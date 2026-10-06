@@ -1,6 +1,6 @@
 import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
-import { startCamera, stopCamera, snap, getFacing } from "./camera.js?v=2";
+import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission } from "./camera.js?v=9";
 import { compose, exportBlob, saveImage } from "./editor.js";
 import { uploadBlob, configured, listPhotos } from "./upload.js";
 const $ = s => document.querySelector(s);
@@ -23,16 +23,10 @@ async function toBitmap(file) {
   if (window.createImageBitmap) { try { return await createImageBitmap(file, { imageOrientation: "from-image" }); } catch {} }
   return await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(file); });
 }
-async function openEditor(photo) {
-  state.photo = photo; busy("Preparando sua foto...");
-  await ensureFrames();           // mantém a moldura escolhida na câmera
-  await buildThumbs($("#thumbs"));
-  draw(); busy(); show("editor");
-}
-function draw() { compose(canvas, state.photo, state.frame?.img); }
 async function ensureFrames() {
   if (!state.frames.length) { state.frames = await loadFrames(); state.frame = state.frames[0] || null; }
 }
+function draw() { compose(canvas, state.photo, state.frame?.img); }
 function selectFrame(f) {
   state.frame = f;
   const img = $("#camFrame");
@@ -51,14 +45,35 @@ async function buildThumbs(box) {
     box.append(b);
   }
 }
+async function openEditor(photo) {
+  state.photo = photo; busy("Preparando sua foto...");
+  await ensureFrames();
+  await buildThumbs($("#thumbs"));
+  draw(); busy(); show("editor");
+}
+
+// ---- Efeitos da câmera
+function triggerFlash() {
+  const f = $("#camFlash");
+  f.classList.add("on");
+  setTimeout(() => f.classList.remove("on"), 70);   // acende rápido e apaga suave (transition do CSS)
+}
+let flipRot = 0;
+function spinFlipIcon() { flipRot += 180; $("#flipIcon").style.transform = `rotate(${flipRot}deg)`; }
+
+// ---- Entrada de foto
 $("#btnPick").onclick = () => $("#file").click();
-$("#camPick").onclick = () => { stopCamera(); $("#file").click(); };
+$("#camPick").onclick = () => { pauseCamera($("#video")); $("#file").click(); };
 $("#file").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
   try { busy("Preparando sua foto..."); await openEditor(await toBitmap(f)); }
   catch (err) { busy(); toast(err.message === "size" ? "Essa foto é muito grande. Escolha outra." : "Não conseguimos abrir essa imagem. Tente outra foto."); show("home"); }
 };
+
 $("#btnCamera").onclick = async () => {
+  if (await cameraPermission() === "denied") {
+    return toast("A câmera está bloqueada para este site. Libere nas configurações do navegador ou use \"Escolher da galeria\".");
+  }
   busy("Abrindo câmera...");
   try {
     await ensureFrames();
@@ -67,18 +82,27 @@ $("#btnCamera").onclick = async () => {
     await startCamera($("#video"), getFacing());
     busy(); show("camera");
   } catch (e) {
-    busy(); stopCamera();
-    toast(e.name === "NotAllowedError" ? "Permita o acesso à câmera ou use \"Escolher foto\"." : "Câmera indisponível. Use \"Escolher foto\".");
+    busy(); releaseCamera();
+    toast(e.name === "NotAllowedError" ? "Permita o acesso à câmera ou use \"Escolher da galeria\"." : "Câmera indisponível. Use \"Escolher da galeria\".");
   }
 };
 $("#flip").onclick = async () => {
+  spinFlipIcon();
   try { await startCamera($("#video"), getFacing() === "user" ? "environment" : "user"); }
   catch { toast("Não foi possível trocar de câmera."); }
 };
-$("#camClose").onclick = () => { stopCamera(); show("home"); };
-$("#shutter").onclick = async () => { const p = snap($("#video")); stopCamera(); await openEditor(p); };
+$("#camClose").onclick = () => { pauseCamera($("#video")); show("home"); };
+$("#shutter").onclick = async () => {
+  const video = $("#video");
+  const p = snap(video);
+  triggerFlash();
+  pauseCamera(video);
+  await new Promise(r => setTimeout(r, 180));     // deixa o flash aparecer antes de abrir o editor
+  await openEditor(p);
+};
 $("#redo").onclick = () => show("home");
 
+// ---- Salvar / Enviar
 $("#save").onclick = async () => {
   try {
     busy("Preparando sua foto..."); const b = await exportBlob(canvas); busy();
@@ -99,6 +123,8 @@ $("#send").onclick = async () => {
   } catch { busy(); toast("Não conseguimos enviar a foto. Verifique sua conexão e tente novamente."); }
 };
 $("#doneNew").onclick = () => { $("#done").hidden = true; show("home"); };
+
+// ---- Contador
 async function refreshCount() {
   if (!configured()) return;
   try {
@@ -109,5 +135,15 @@ async function refreshCount() {
   } catch { $("#countBadge").hidden = true; }
 }
 refreshCount();
+
+// ---- Ciclo de vida da câmera
+addEventListener("pagehide", releaseCamera);
+document.addEventListener("visibilitychange", async () => {
+  const camOpen = !$("#camera").hidden;
+  if (document.hidden && !camOpen) releaseCamera();          // saiu do site fora da câmera: libera
+  if (!document.hidden && camOpen) {                          // voltou com a câmera aberta: reativa se o sistema a derrubou
+    try { await startCamera($("#video"), getFacing()); } catch {}
+  }
+});
 
 show("home");
