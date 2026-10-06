@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Galeria — Chá de Bebê</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="gal">
+<header class="ghead"><a class="link" href="./">← Início</a><h1 data-cfg="galleryTitle">Galeria</h1></header>
+<p id="empty" class="note" hidden>Ainda não há fotos. Seja o primeiro a enviar!</p>
+<p id="err" class="note" hidden>Não conseguimos carregar as fotos agora. Verifique sua conexão e tente novamente.</p>
+<main id="grid" class="grid"></main>
+<button id="more" class="btn ghost more" hidden>Carregar mais</button>
+<div id="viewer" class="overlay" hidden role="dialog" aria-modal="true" aria-label="Foto ampliada">
+  <div class="card wide"><img id="big" alt="Foto ampliada"><p id="hint" class="note" hidden>Pressione e segure a foto para salvar.</p>
+  <div class="row"><button class="btn" id="vsave">💾 Salvar</button><button class="btn ghost" id="vclose">Fechar</button></div></div>
+</div>
+<script type="module" src="js/gallery.js"></script>
+</body>
+</html>

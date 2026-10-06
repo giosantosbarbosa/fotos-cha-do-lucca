@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chá de Bebê</title>
+<meta name="theme-color" content="#F7F4F8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<main id="home" class="view home">
+  <div class="arch">
+    <p class="kicker">Venha celebrar</p>
+    <h1 data-cfg="eventName">Chá de Bebê</h1>
+    <p class="sub" data-cfg="subtitle"></p>
+  </div>
+  <nav class="actions">
+    <button class="btn primary" id="btnCamera">📸 Tirar foto</button>
+    <button class="btn" id="btnPick">🖼️ Escolher foto</button>
+    <a class="btn ghost" href="galeria.html">Ver galeria</a>
+  </nav>
+</main>
+
+<section id="camera" class="view cam" hidden aria-label="Câmera">
+  <video id="video" playsinline muted autoplay></video>
+  <button class="cam-x" id="camClose" aria-label="Fechar câmera">✕</button>
+  <div class="cam-bar">
+    <button class="link" id="camPick">Galeria</button>
+    <button class="shutter" id="shutter" aria-label="Tirar foto"></button>
+    <span></span>
+  </div>
+</section>
+
+<section id="editor" class="view edit" hidden aria-label="Editor">
+  <div class="stage"><canvas id="canvas" aria-label="Prévia da foto com moldura"></canvas></div>
+  <div class="panel">
+    <p class="label">Escolha sua moldura</p>
+    <div id="thumbs" class="thumbs" role="group"></div>
+    <div class="row">
+      <button class="btn ghost" id="redo">↩ Refazer</button>
+      <button class="btn" id="save">💾 Salvar</button>
+    </div>
+    <button class="btn primary" id="send">💕 Enviar para a galeria</button>
+  </div>
+</section>
+
+<input type="file" id="file" accept="image/*" hidden>
+<div id="busy" class="overlay" hidden role="status" aria-live="polite"><div class="card"><div class="spin"></div><p id="busyMsg"></p><div id="bar" class="bar" hidden><i></i></div></div></div>
+<div id="done" class="overlay" hidden role="dialog" aria-modal="true"><div class="card"><p class="big">Foto enviada! 💕</p><a class="btn primary" href="galeria.html">Ver galeria</a><button class="btn ghost" id="doneNew">Tirar outra</button></div></div>
+<div id="manual" class="overlay" hidden role="dialog" aria-modal="true"><div class="card"><p>Pressione e segure a foto e escolha <b>Salvar em Fotos</b>.</p><img id="manualImg" alt="Sua foto"><button class="btn" id="manualClose">Fechar</button></div></div>
+<div id="toast" class="toast" hidden role="alert"></div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

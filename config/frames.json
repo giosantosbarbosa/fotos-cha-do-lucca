@@ -1,0 +1,4 @@
+[
+  { "id": "exemplo-01", "name": "Rosé", "file": "assets/frames/exemplo-01.png", "thumbnail": "assets/frames/exemplo-01.png", "active": true },
+  { "id": "exemplo-02", "name": "Lilás", "file": "assets/frames/exemplo-02.png", "thumbnail": "assets/frames/exemplo-02.png", "active": true }
+]
