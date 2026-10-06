@@ -1,9 +1,9 @@
 // Tudo que é personalizável fica aqui.
 export const APP_CONFIG = {
-  eventName: "Chá de Bebê [NOME DO BEBÊ]",
-  subtitle: "Registre esse momento com a gente 💕",
+  eventName: "Chá do Lucca",
+  subtitle: "Guarde esse momento com a gente! Envie suas fotos diretamente para o álbum oficial.",
+  colors: { primary: "#4F5573", secondary: "#D2E6F7", background: "#EBF4FB", text: "#1C2D42" },
   galleryTitle: "Memórias do nosso chá",
-  colors: { primary: "#6F5C86", secondary: "#E9BDB5", background: "#F7F4F8", text: "#2E2838" },
   outputWidth: 1080,
   outputHeight: 1920,
   webpQuality: 0.88,

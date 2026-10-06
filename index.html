@@ -6,20 +6,41 @@
 <title>Chá de Bebê</title>
 <meta name="theme-color" content="#F7F4F8">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💕</text></svg>">
-<link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
 <main id="home" class="view home">
-  <div class="arch">
-    <p class="kicker">Venha celebrar</p>
-    <h1 data-cfg="eventName">Chá de Bebê</h1>
+  <span class="star" style="top:16px;left:24px;color:#7dd3fc">★</span>
+  <span class="star" style="top:48px;right:32px">★</span>
+  <span class="star" style="top:144px;left:32px">★</span>
+  <span class="star" style="top:190px;right:40px;color:#7dd3fc">★</span>
+
+  <!-- COLE AQUI as duas <path> das nuvens do seu arquivo -->
+  <svg class="clouds" viewBox="0 0 375 140" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- <path ...> <path ...> -->
+  </svg>
+
+  <header class="home-head">
+    <p class="kicker">Venha celebrar conosco</p>
+    <h1 data-cfg="eventName">Chá do Lucca</h1>
     <p class="sub" data-cfg="subtitle"></p>
+  </header>
+
+  <div class="hero">
+    <!-- COLE AQUI o <svg viewBox="0 0 200 220"> ... </svg> do ursinho no balão.
+         Apague as classes do Tailwind (class="w-full h-full drop-shadow-lg"). -->
   </div>
-  <nav class="actions">
-    <button class="btn primary" id="btnCamera">📸 Tirar foto</button>
-    <button class="btn" id="btnPick">🖼️ Escolher foto</button>
-    <a class="btn ghost" href="galeria.html">Ver galeria</a>
-  </nav>
+
+  <div class="dock">
+    <nav class="actions">
+      <button class="btn primary" id="btnCamera">📸 Tirar foto agora</button>
+      <button class="btn" id="btnPick">🖼️ Escolher da galeria</button>
+      <a class="btn ghost" href="galeria.html">Ver galeria do evento ›</a>
+    </nav>
+  </div>
 </main>
 
 <section id="camera" class="view cam" hidden aria-label="Câmera">
