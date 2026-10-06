@@ -1,6 +1,6 @@
 import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
-import { startCamera, stopCamera, snap, getFacing } from "./camera.js";
+import { startCamera, stopCamera, snap, getFacing } from "./camera.js?v=2";
 import { compose, exportBlob, saveImage } from "./editor.js";
 import { uploadBlob, configured } from "./upload.js";
 const $ = s => document.querySelector(s);
