@@ -23,12 +23,19 @@
 </main>
 
 <section id="camera" class="view cam" hidden aria-label="Câmera">
-  <video id="video" playsinline muted autoplay></video>
+  <div class="cam-stage">
+    <video id="video" playsinline muted autoplay></video>
+    <img id="camFrame" class="cam-frame" alt="" hidden>
+  </div>
   <button class="cam-x" id="camClose" aria-label="Fechar câmera">✕</button>
+  <button class="cam-flip" id="flip" aria-label="Trocar câmera">🔄</button>
   <div class="cam-bar">
-    <button class="link" id="camPick">Galeria</button>
-    <button class="shutter" id="shutter" aria-label="Tirar foto"></button>
-    <span></span>
+    <div id="camThumbs" class="thumbs cam-thumbs" role="group"></div>
+    <div class="cam-ctrl">
+      <button class="link" id="camPick">Galeria</button>
+      <button class="shutter" id="shutter" aria-label="Tirar foto"></button>
+      <span></span>
+    </div>
   </div>
 </section>
 

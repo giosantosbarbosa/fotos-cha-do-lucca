@@ -1,6 +1,6 @@
 import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
-import { startCamera, stopCamera, snap } from "./camera.js";
+import { startCamera, stopCamera, snap, getFacing } from "./camera.js";
 import { compose, exportBlob, saveImage } from "./editor.js";
 import { uploadBlob, configured } from "./upload.js";
 const $ = s => document.querySelector(s);
@@ -25,18 +25,29 @@ async function toBitmap(file) {
 }
 async function openEditor(photo) {
   state.photo = photo; busy("Preparando sua foto...");
-  if (!state.frames.length) state.frames = await loadFrames();
-  state.frame = state.frames[0] || null; await buildThumbs(); draw(); busy(); show("editor");
+  await ensureFrames();           // mantém a moldura escolhida na câmera
+  await buildThumbs($("#thumbs"));
+  draw(); busy(); show("editor");
 }
 function draw() { compose(canvas, state.photo, state.frame?.img); }
-async function buildThumbs() {
-  const box = $("#thumbs"); box.innerHTML = "";
+async function ensureFrames() {
+  if (!state.frames.length) { state.frames = await loadFrames(); state.frame = state.frames[0] || null; }
+}
+function selectFrame(f) {
+  state.frame = f;
+  const img = $("#camFrame");
+  if (f) { img.src = f.file; img.hidden = false; } else img.hidden = true;
+  document.querySelectorAll(".thumb").forEach(t => t.setAttribute("aria-pressed", t.dataset.id === f?.id));
+  if (!$("#editor").hidden && state.photo) draw();
+}
+async function buildThumbs(box) {
+  box.innerHTML = "";
   for (const f of state.frames) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "thumb";
+    const b = document.createElement("button"); b.type = "button"; b.className = "thumb"; b.dataset.id = f.id;
     b.setAttribute("aria-label", "Moldura " + f.name); b.setAttribute("aria-pressed", f === state.frame);
     const i = new Image(); i.src = await thumbSrc(f); i.alt = "";
     b.append(i, Object.assign(document.createElement("span"), { textContent: f.name }));
-    b.onclick = () => { state.frame = f; draw(); box.querySelectorAll(".thumb").forEach(t => t.setAttribute("aria-pressed", t === b)); };
+    b.onclick = () => selectFrame(f);
     box.append(b);
   }
 }
@@ -49,8 +60,20 @@ $("#file").onchange = async e => {
 };
 $("#btnCamera").onclick = async () => {
   busy("Abrindo câmera...");
-  try { await startCamera($("#video")); busy(); show("camera"); }
-  catch (e) { busy(); stopCamera(); toast(e.name === "NotAllowedError" ? "Permita o acesso à câmera ou use \"Escolher foto\"." : "Câmera indisponível. Use \"Escolher foto\"."); }
+  try {
+    await ensureFrames();
+    await buildThumbs($("#camThumbs"));
+    selectFrame(state.frame);
+    await startCamera($("#video"), getFacing());
+    busy(); show("camera");
+  } catch (e) {
+    busy(); stopCamera();
+    toast(e.name === "NotAllowedError" ? "Permita o acesso à câmera ou use \"Escolher foto\"." : "Câmera indisponível. Use \"Escolher foto\".");
+  }
+};
+$("#flip").onclick = async () => {
+  try { await startCamera($("#video"), getFacing() === "user" ? "environment" : "user"); }
+  catch { toast("Não foi possível trocar de câmera."); }
 };
 $("#camClose").onclick = () => { stopCamera(); show("home"); };
 $("#shutter").onclick = async () => { const p = snap($("#video")); stopCamera(); await openEditor(p); };
