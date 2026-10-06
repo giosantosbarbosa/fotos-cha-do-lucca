@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=8">
-<script type="module" src="js/app.js?v=8"></script>
+<link rel="stylesheet" href="css/style.css?v=10">
+<script type="module" src="js/app.js?v=10"></script>
 </head>
 <body>
 <main id="home" class="view home">
@@ -116,123 +116,30 @@
 </main>
 
   <!-- CAMERA CONTAINER OVERLAY (ESTILO INSTAGRAM STORIES) -->
-  <div id="camera-view" class="camera-container">
-    
-    <!-- Viewfinder Area -->
-    <div class="viewfinder">
-      
-      <!-- Stream da Câmera em Tempo Real -->
-      <video id="camera-video" autoplay playsinline></video>
+<section id="camera" class="view camera-container" hidden aria-label="Câmera">
+  <div class="viewfinder">
+    <video id="video" playsinline muted autoplay></video>
+    <img id="camFrame" class="cam-frame" alt="" hidden>
+    <div id="camFlash" class="flash-overlay" aria-hidden="true"></div>
 
-      <!-- Canvas Oculto para Captura do Snapshot + Moldura -->
-      <canvas id="camera-canvas" class="hidden-canvas"></canvas>
-
-      <!-- Flash Effect Overlay -->
-      <div id="camera-flash" class="flash-overlay"></div>
-
-      <!-- MOLDURAS DINÂMICAS / OVERLAYS -->
-      <div id="frame-overlay-container" class="frame-overlay-container">
-        
-        <!-- Moldura 1: Chá do Lucca (Padrão) -->
-        <div id="frame-lucca" class="frame-element frame-lucca">
-          <div class="frame-header">
-            <span class="badge-brand font-script">Chá do Lucca</span>
-            <i class="fa-solid fa-star star-icon"></i>
-          </div>
-          <div class="frame-footer">
-            <div class="watermark-card">
-              <i class="fa-solid fa-balloon balloon-icon"></i>
-              <div>
-                <p class="wm-title">Chá do Lucca</p>
-                <p class="wm-subtitle">Álbum Oficial</p>
-              </div>
-            </div>
-            <i class="fa-solid fa-cloud cloud-icon"></i>
-          </div>
-        </div>
-
-        <!-- Moldura 2: Nuvem & Estrelas -->
-        <div id="frame-nuvem-filtro" class="frame-element frame-nuvem hidden">
-          <div class="frame-header-centered">
-            <i class="fa-solid fa-star star-icon"></i>
-            <span class="badge-pill">✨ Momento Especial</span>
-            <i class="fa-solid fa-star star-icon"></i>
-          </div>
-          <div class="frame-footer-centered font-script">
-            Bem-vindo, Lucca!
-          </div>
-        </div>
-
-        <!-- Moldura 3: Ursinho Fofo -->
-        <div id="frame-ursinho" class="frame-element frame-ursinho hidden">
-          <div class="frame-header-right">
-            <span class="badge-bear">🧸 Lucca</span>
-          </div>
-          <div class="frame-footer-centered">
-            <span class="badge-title">Chá de Bebê do Lucca ❤️</span>
-          </div>
-        </div>
-
-        <!-- Moldura 4: Sem Moldura -->
-        <div id="frame-clean" class="frame-element frame-clean hidden"></div>
-
-      </div>
-
-      <!-- Top Camera Bar -->
-      <div class="top-bar">
-        <button type="button" class="btn-icon" id="btn-close" title="Fechar">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-
-        <div class="live-indicator">
-          <span class="live-dot"></span>
-          <span>Câmera Ao Vivo</span>
-        </div>
-
-        <button type="button" class="btn-icon" id="btn-flash" title="Flash">
-          <i class="fa-solid fa-bolt"></i>
-        </button>
-      </div>
-
+    <div class="top-bar">
+      <button type="button" class="btn-icon" id="camClose" aria-label="Fechar câmera">✕</button>
+      <div class="live-indicator"><span class="live-dot"></span><span>Câmera ao vivo</span></div>
+      <span class="spacer" aria-hidden="true"></span>
     </div>
 
-    <!-- Controles Inferiores (Carrossel de Filtros + Disparo) -->
     <div class="bottom-controls">
-      
-      <!-- Carrossel de Molduras (Filtros estilo Instagram) -->
       <div class="carousel-container">
-        <div class="carousel-track">
-          <button type="button" class="frame-pill active" data-frame="lucca">🎈 Moldura Lucca</button>
-          <button type="button" class="frame-pill" data-frame="nuvem">☁️️ Nuvem & Estrelas</button>
-          <button type="button" class="frame-pill" data-frame="ursinho">🧸 Ursinho Fofo</button>
-          <button type="button" class="frame-pill" data-frame="clean">📷 Sem Moldura</button>
-        </div>
+        <div class="carousel-track" id="camThumbs" role="group" aria-label="Molduras"></div>
       </div>
-
-      <!-- Barra de Disparo Principal -->
       <div class="shutter-bar">
-        
-        <!-- Abrir Galeria -->
-        <label for="camera-gallery-picker" class="gallery-picker-btn" title="Escolher da Galeria">
-          <i class="fa-regular fa-image"></i>
-          <input type="file" id="camera-gallery-picker" accept="image/*" class="hidden-input">
-        </label>
-
-        <!-- Botão de Disparo (Shutter Button) -->
-        <button type="button" id="btn-shutter" class="shutter-btn" title="Tirar Foto">
-          <span class="shutter-inner"></span>
-        </button>
-
-        <!-- Inverter Câmera (Frontal/Traseira) -->
-        <button type="button" id="btn-flip" class="flip-btn" title="Inverter Câmera">
-          <i class="fa-solid fa-rotate" id="flip-icon"></i>
-        </button>
-
+        <button type="button" class="gallery-picker-btn" id="camPick" aria-label="Escolher da galeria">🖼️</button>
+        <button type="button" id="shutter" class="shutter-btn" aria-label="Tirar foto"><span class="shutter-inner"></span></button>
+        <button type="button" class="flip-btn" id="flip" aria-label="Trocar câmera"><span id="flipIcon">🔄</span></button>
       </div>
-
     </div>
-
   </div>
+</section>
 
 <section id="editor" class="view edit" hidden aria-label="Editor">
   <div class="stage"><canvas id="canvas" aria-label="Prévia da foto com moldura"></canvas></div>

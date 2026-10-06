@@ -31,16 +31,24 @@ function selectFrame(f) {
   state.frame = f;
   const img = $("#camFrame");
   if (f) { img.src = f.file; img.hidden = false; } else img.hidden = true;
-  document.querySelectorAll(".thumb").forEach(t => t.setAttribute("aria-pressed", t.dataset.id === f?.id));
+  const id = f ? f.id : "none";
+  document.querySelectorAll(".thumb,.frame-pill").forEach(t => t.setAttribute("aria-pressed", t.dataset.id === id));
   if (!$("#editor").hidden && state.photo) draw();
 }
-async function buildThumbs(box) {
+async function buildThumbs(box, pill = false) {
   box.innerHTML = "";
-  for (const f of state.frames) {
-    const b = document.createElement("button"); b.type = "button"; b.className = "thumb"; b.dataset.id = f.id;
-    b.setAttribute("aria-label", "Moldura " + f.name); b.setAttribute("aria-pressed", f === state.frame);
-    const i = new Image(); i.src = await thumbSrc(f); i.alt = "";
-    b.append(i, Object.assign(document.createElement("span"), { textContent: f.name }));
+  const list = pill ? [...state.frames, null] : state.frames;   // na câmera, a última opção é "Sem moldura"
+  for (const f of list) {
+    const b = document.createElement("button"); b.type = "button";
+    b.className = pill ? "frame-pill" : "thumb"; b.dataset.id = f ? f.id : "none";
+    b.setAttribute("aria-pressed", f === state.frame);
+    if (pill) {
+      b.textContent = f ? f.name : "Sem moldura";
+    } else {
+      b.setAttribute("aria-label", "Moldura " + f.name);
+      const i = new Image(); i.src = await thumbSrc(f); i.alt = "";
+      b.append(i, Object.assign(document.createElement("span"), { textContent: f.name }));
+    }
     b.onclick = () => selectFrame(f);
     box.append(b);
   }
@@ -77,7 +85,7 @@ $("#btnCamera").onclick = async () => {
   busy("Abrindo câmera...");
   try {
     await ensureFrames();
-    await buildThumbs($("#camThumbs"));
+    await buildThumbs($("#camThumbs"), true);
     selectFrame(state.frame);
     await startCamera($("#video"), getFacing());
     busy(); show("camera");
