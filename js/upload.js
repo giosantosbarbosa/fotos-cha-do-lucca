@@ -23,5 +23,8 @@ export async function listPhotos(offset = 0, limit = 30) {
     body: JSON.stringify({ prefix: "", limit, offset, sortBy: { column: "created_at", order: "desc" } })
   });
   if (!r.ok) throw new Error("list");
-  return (await r.json()).filter(o => /\.(webp|jpe?g)$/i.test(o.name)).map(o => o.name);
+  const all = await r.json();
+  const out = all.filter(o => /\.(webp|jpe?g)$/i.test(o.name)).map(o => o.name);
+  out.raw = all.length; // total bruto da página (usado na paginação)
+  return out;
 }

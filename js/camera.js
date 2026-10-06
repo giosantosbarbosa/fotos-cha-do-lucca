@@ -11,6 +11,7 @@ export async function cameraPermission() {
 export async function startCamera(video, mode = facing) {
   if (!navigator.mediaDevices?.getUserMedia) throw new Error("unsupported");
   if (alive() && mode === facing) {            // reaproveita a câmera aberta: não pede permissão de novo
+    stream.getTracks().forEach(t => (t.enabled = true));
     video.srcObject = stream; mirror(video, mode); await video.play(); return;
   }
   releaseCamera(); facing = mode;
@@ -23,10 +24,21 @@ export async function startCamera(video, mode = facing) {
   await video.play();
 }
 
-export const pauseCamera = video => video.pause();   // só pausa, mantém a permissão e a câmera
+// Só pausa: desliga as trilhas (sem pedir permissão de novo ao reabrir) e apaga a lanterna.
+export async function pauseCamera(video) {
+  await setTorch(false);
+  video.pause(); stream?.getTracks().forEach(t => (t.enabled = false));
+}
+export const hasTorch = () => !!stream?.getVideoTracks()[0]?.getCapabilities?.().torch;
+export async function setTorch(on) {
+  const t = stream?.getVideoTracks()[0];
+  if (!hasTorch()) return false;
+  try { await t.applyConstraints({ advanced: [{ torch: on }] }); return true; } catch { return false; }
+}
 export function releaseCamera() { stream?.getTracks().forEach(t => t.stop()); stream = null; }
 
 export function snap(video) {
+  if (!video.videoWidth) throw new Error("not-ready");
   const c = document.createElement("canvas");
   c.width = video.videoWidth; c.height = video.videoHeight;
   const ctx = c.getContext("2d");

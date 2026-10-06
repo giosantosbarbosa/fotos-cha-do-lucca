@@ -1,5 +1,5 @@
 import { APP_CONFIG as C, applyTheme } from "./config.js";
-import { listPhotos, publicUrl, configured } from "./upload.js";
+import { listPhotos, publicUrl, configured } from "./upload.js?v=11";
 import { saveImage } from "./editor.js";
 applyTheme();
 const $ = s => document.querySelector(s);
@@ -14,8 +14,8 @@ function card(n, prepend) {
 }
 async function loadMore() {
   try {
-    const names = await listPhotos(offset, 30); offset += names.length; names.forEach(n => card(n));
-    more.hidden = names.length < 30; empty.hidden = seen.size > 0; $("#err").hidden = true;
+    const names = await listPhotos(offset, 30); offset += names.raw; names.forEach(n => card(n));
+    more.hidden = names.raw < 30; empty.hidden = seen.size > 0; $("#err").hidden = true;
   } catch { $("#err").hidden = false; }
 }
 async function refresh() {

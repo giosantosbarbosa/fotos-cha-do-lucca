@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=10">
-<script type="module" src="js/app.js?v=10"></script>
+<link rel="stylesheet" href="css/style.css?v=11">
+<script type="module" src="js/app.js?v=11"></script>
 </head>
 <body>
 <main id="home" class="view home">
@@ -125,7 +125,7 @@
     <div class="top-bar">
       <button type="button" class="btn-icon" id="camClose" aria-label="Fechar câmera">✕</button>
       <div class="live-indicator"><span class="live-dot"></span><span>Câmera ao vivo</span></div>
-      <span class="spacer" aria-hidden="true"></span>
+      <button type="button" class="btn-icon" id="camFlashBtn" aria-label="Ligar flash" aria-pressed="false">⚡</button>
     </div>
 
     <div class="bottom-controls">
@@ -159,6 +159,5 @@
 <div id="done" class="overlay" hidden role="dialog" aria-modal="true"><div class="card"><p class="big">Foto enviada! 💕</p><a class="btn primary" href="galeria.html">Ver galeria</a><button class="btn ghost" id="doneNew">Tirar outra</button></div></div>
 <div id="manual" class="overlay" hidden role="dialog" aria-modal="true"><div class="card"><p>Pressione e segure a foto e escolha <b>Salvar em Fotos</b>.</p><img id="manualImg" alt="Sua foto"><button class="btn" id="manualClose">Fechar</button></div></div>
 <div id="toast" class="toast" hidden role="alert"></div>
-<script type="module" src="js/app.js?v=2"></script>
 </body>
 </html>

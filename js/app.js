@@ -1,8 +1,8 @@
 import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
-import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission } from "./camera.js?v=9";
+import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission, hasTorch, setTorch } from "./camera.js?v=11";
 import { compose, exportBlob, saveImage } from "./editor.js";
-import { uploadBlob, configured, listPhotos } from "./upload.js";
+import { uploadBlob, configured, listPhotos } from "./upload.js?v=11";
 const $ = s => document.querySelector(s);
 applyTheme();
 const state = { photo: null, frame: null, frames: [] };
@@ -66,12 +66,19 @@ function triggerFlash() {
   f.classList.add("on");
   setTimeout(() => f.classList.remove("on"), 70);   // acende rápido e apaga suave (transition do CSS)
 }
+// Flash: lanterna real (Android/Chrome) ou "flash de tela" (iPhone e câmera frontal)
+let flashOn = false, shooting = false;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function flashUI() { const b = $("#camFlashBtn"); b.setAttribute("aria-pressed", flashOn); b.setAttribute("aria-label", flashOn ? "Desligar flash" : "Ligar flash"); }
+async function endFlash() { if (flashOn) { flashOn = false; await setTorch(false); flashUI(); } }
+async function applyFlash() { if (flashOn && hasTorch()) await setTorch(true); }
+$("#camFlashBtn").onclick = async () => { flashOn = !flashOn; if (hasTorch()) await setTorch(flashOn); flashUI(); };
 let flipRot = 0;
 function spinFlipIcon() { flipRot += 180; $("#flipIcon").style.transform = `rotate(${flipRot}deg)`; }
 
 // ---- Entrada de foto
 $("#btnPick").onclick = () => $("#file").click();
-$("#camPick").onclick = () => { pauseCamera($("#video")); $("#file").click(); };
+$("#camPick").onclick = async () => { await endFlash(); await pauseCamera($("#video")); $("#file").click(); };
 $("#file").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
   try { busy("Preparando sua foto..."); await openEditor(await toBitmap(f)); }
@@ -88,6 +95,7 @@ $("#btnCamera").onclick = async () => {
     await buildThumbs($("#camThumbs"), true);
     selectFrame(state.frame);
     await startCamera($("#video"), getFacing());
+    await applyFlash();
     busy(); show("camera");
   } catch (e) {
     busy(); releaseCamera();
@@ -96,17 +104,22 @@ $("#btnCamera").onclick = async () => {
 };
 $("#flip").onclick = async () => {
   spinFlipIcon();
-  try { await startCamera($("#video"), getFacing() === "user" ? "environment" : "user"); }
+  try { await startCamera($("#video"), getFacing() === "user" ? "environment" : "user"); await applyFlash(); }
   catch { toast("Não foi possível trocar de câmera."); }
 };
-$("#camClose").onclick = () => { pauseCamera($("#video")); show("home"); };
+$("#camClose").onclick = async () => { await endFlash(); await pauseCamera($("#video")); show("home"); };
 $("#shutter").onclick = async () => {
-  const video = $("#video");
-  const p = snap(video);
-  triggerFlash();
-  pauseCamera(video);
-  await new Promise(r => setTimeout(r, 180));     // deixa o flash aparecer antes de abrir o editor
-  await openEditor(p);
+  if (shooting) return; shooting = true;
+  const video = $("#video"), lit = flashOn && !hasTorch();
+  try {
+    if (lit) { $("#camFlash").classList.add("lit"); await wait(250); }   // flash de tela
+    const p = snap(video);
+    $("#camFlash").classList.remove("lit"); triggerFlash();
+    await endFlash(); await pauseCamera(video);
+    await wait(180);
+    await openEditor(p);
+  } catch { $("#camFlash").classList.remove("lit"); busy(); toast("Não conseguimos tirar a foto. Tente novamente."); }
+  finally { shooting = false; }
 };
 $("#redo").onclick = () => show("home");
 
@@ -137,7 +150,7 @@ async function refreshCount() {
   if (!configured()) return;
   try {
     let n = 0, o = 0, page;
-    do { page = await listPhotos(o, 100); n += page.length; o += 100; } while (page.length === 100);
+    do { page = await listPhotos(o, 100); n += page.length; o += page.raw; } while (page.raw === 100);
     $("#photo-count").textContent = n;
     $("#countBadge").hidden = n === 0;
   } catch { $("#countBadge").hidden = true; }
@@ -148,7 +161,6 @@ refreshCount();
 addEventListener("pagehide", releaseCamera);
 document.addEventListener("visibilitychange", async () => {
   const camOpen = !$("#camera").hidden;
-  if (document.hidden && !camOpen) releaseCamera();          // saiu do site fora da câmera: libera
   if (!document.hidden && camOpen) {                          // voltou com a câmera aberta: reativa se o sistema a derrubou
     try { await startCamera($("#video"), getFacing()); } catch {}
   }
