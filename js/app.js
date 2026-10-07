@@ -71,7 +71,7 @@ async function openEditor(photo) {
 
 // ---- Flash e efeitos da câmera
 // Lanterna real (Android/Chrome) ou "flash de tela" (iPhone e câmera frontal)
-let flashOn = false, shooting = false, flipping = false, flipRot = 0;
+let flashOn = false, shooting = false, flipping = false;
 const screenLight = () => $("#screenLight") || $("#camFlash");
 function triggerFlash() {
   const f = $("#camFlash");
@@ -82,11 +82,7 @@ function flashUI() { const b = $("#camFlashBtn"); b.setAttribute("aria-pressed",
 async function endFlash() { if (flashOn) { flashOn = false; await setTorch(false); flashUI(); } }
 async function applyFlash() { if (flashOn && hasTorch()) await setTorch(true); }
 $("#camFlashBtn").onclick = async () => { flashOn = !flashOn; if (hasTorch()) await setTorch(flashOn); flashUI(); };
-function spinFlipIcon() {
-  flipRot += 180;
-  const i = document.querySelector("#flip img");
-  if (i) i.style.transform = `rotate(${flipRot}deg)`;
-}
+
 async function resumeCameraView() {
   try { await startCamera($("#video"), getFacing()); } catch {}
 }
@@ -128,7 +124,7 @@ $("#btnCamera").onclick = async () => {
   }
 };
 $("#flip").onclick = async () => {
-  if (flipping) return; flipping = true; spinFlipIcon();
+  if (flipping) return; flipping = true; 
   try { await startCamera($("#video"), getFacing() === "user" ? "environment" : "user"); await applyFlash(); }
   catch { toast("Não foi possível trocar de câmera."); }
   finally { flipping = false; }

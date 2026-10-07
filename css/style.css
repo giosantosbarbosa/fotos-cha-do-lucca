@@ -280,8 +280,6 @@ h1{font:600 clamp(2rem,9vw,2.8rem)/1.1 var(--serif);margin:0 0 1rem;color:var(--
 .btn-icon-flash[aria-pressed=true]{background:#fcd34d;border-color:#fcd34d}
 .btn-icon-flash[aria-pressed=true] img{filter:brightness(0)}
 
-.flip-btn img{transition:transform .4s ease}
-
 .flash-overlay.lit{opacity:1;transition:opacity .08s}
 
 
