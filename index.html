@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=11">
-<script type="module" src="js/app.js?v=11"></script>
+<link rel="stylesheet" href="css/style.css?v=15">
+<script type="module" src="js/app.js?v=15"></script>
 </head>
 <body>
 <main id="home" class="view home">
@@ -124,27 +124,28 @@
 
     <div class="top-bar">
       <button type="button" class="btn-icon" id="camClose" aria-label="Fechar câmera">✕</button>
-      <div class="live-indicator"><span class="live-dot"></span><span>Câmera</span></div>
-      <button type="button" class="btn-icon" id="camFlashBtn" aria-label="Ligar flash" aria-pressed="false">
+      <button type="button" class="btn-icon-flash" id="camFlashBtn" aria-label="Ligar flash" aria-pressed="false">
         <img src="assets/img/flash.png" alt="Ligar flash" aria-hidden="true">
       </button>
     </div>
-
-    <div class="bottom-controls">
-      <div class="carousel-container">
-        <div class="carousel-track" id="camThumbs" role="group" aria-label="Molduras"></div>
-      </div>
-      <div class="shutter-bar">
+    
+    <div class="shutter-bar">
         <button type="button" class="gallery-picker-btn" id="camPick" aria-label="Escolher da galeria">
           <img src="assets/img/gallery.png" alt="Escolher da galeria" aria-hidden="true">
         </button>
         <button type="button" id="shutter" class="shutter-btn" aria-label="Tirar foto"><span class="shutter-inner"></span></button>
-        <button type="button" class="flip-btn" id="flip" aria-label="Trocar câmera"><span id="flipIcon">
+        <button type="button" class="flip-btn" id="flip" aria-label="Trocar câmera">
           <img src="assets/img/switch-camera.png" alt="Trocar câmera" aria-hidden="true">
-        </span></button>
+        </button>
+      </div>
+  </div>
+  
+  <div class="bottom-controls">
+      <div class="carousel-container">
+        <div class="carousel-track" id="camThumbs" role="group" aria-label="Molduras"></div>
       </div>
     </div>
-  </div>
+ 
 </section>
 
 <section id="editor" class="view edit" hidden aria-label="Editor">
