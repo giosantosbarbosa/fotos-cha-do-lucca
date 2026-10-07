@@ -9,6 +9,7 @@ const state = { photo: null, frame: null, frames: [] };
 const canvas = $("#canvas");
 const views = ["home", "camera", "editor"];
 const show = v => views.forEach(n => ($("#" + n).hidden = n !== v));
+const wait = ms => new Promise(r => setTimeout(r, ms));
 let toastT;
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 4500); }
 function busy(msg, pct) {
@@ -17,17 +18,19 @@ function busy(msg, pct) {
 }
 $("#manualClose").onclick = () => { $("#manual").hidden = true; };
 
+// ---- Foto de entrada
 async function toBitmap(file) {
   if (!file.type.startsWith("image/")) throw new Error("type");
   if (file.size > C.maxPhotoSizeMB * 1048576) throw new Error("size");
   if (window.createImageBitmap) { try { return await createImageBitmap(file, { imageOrientation: "from-image" }); } catch {} }
   return await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(file); });
 }
+
+// ---- Molduras
 async function ensureFrames() {
   if (!state.frames.length) { state.frames = await loadFrames(); state.frame = state.frames[0] || null; }
 }
 function draw() { compose(canvas, state.photo, state.frame?.img); }
-
 function centerActivePill(smooth = true) {
   document.querySelector('.frame-pill[aria-pressed="true"]')
     ?.scrollIntoView({ inline: "center", block: "nearest", behavior: smooth ? "smooth" : "auto" });
@@ -39,6 +42,7 @@ function selectFrame(f) {
   const id = f ? f.id : "none";
   document.querySelectorAll(".thumb,.frame-pill").forEach(t => t.setAttribute("aria-pressed", t.dataset.id === id));
   if (!$("#editor").hidden && state.photo) draw();
+  centerActivePill();
 }
 async function buildThumbs(box, pill = false) {
   box.innerHTML = "";
@@ -65,31 +69,46 @@ async function openEditor(photo) {
   draw(); busy(); show("editor");
 }
 
-// ---- Efeitos da câmera
+// ---- Flash e efeitos da câmera
+// Lanterna real (Android/Chrome) ou "flash de tela" (iPhone e câmera frontal)
+let flashOn = false, shooting = false, flipping = false, flipRot = 0;
+const screenLight = () => $("#screenLight") || $("#camFlash");
 function triggerFlash() {
   const f = $("#camFlash");
   f.classList.add("on");
-  setTimeout(() => f.classList.remove("on"), 70);   // acende rápido e apaga suave (transition do CSS)
+  setTimeout(() => f.classList.remove("on"), 70);
 }
-// Flash: lanterna real (Android/Chrome) ou "flash de tela" (iPhone e câmera frontal)
-let flashOn = false, shooting = false;
-const wait = ms => new Promise(r => setTimeout(r, ms));
 function flashUI() { const b = $("#camFlashBtn"); b.setAttribute("aria-pressed", flashOn); b.setAttribute("aria-label", flashOn ? "Desligar flash" : "Ligar flash"); }
 async function endFlash() { if (flashOn) { flashOn = false; await setTorch(false); flashUI(); } }
 async function applyFlash() { if (flashOn && hasTorch()) await setTorch(true); }
 $("#camFlashBtn").onclick = async () => { flashOn = !flashOn; if (hasTorch()) await setTorch(flashOn); flashUI(); };
-let flipRot = 0;
-function spinFlipIcon() { flipRot += 180; $("#flipIcon").style.transform = `rotate(${flipRot}deg)`; }
+function spinFlipIcon() {
+  flipRot += 180;
+  const i = document.querySelector("#flip img");
+  if (i) i.style.transform = `rotate(${flipRot}deg)`;
+}
+async function resumeCameraView() {
+  try { await startCamera($("#video"), getFacing()); } catch {}
+}
 
 // ---- Entrada de foto
 $("#btnPick").onclick = () => $("#file").click();
-$("#camPick").onclick = async () => { await endFlash(); await pauseCamera($("#video")); $("#file").click(); };
+$("#camPick").onclick = async () => { await endFlash(); $("#file").click(); };   // não pausa: se cancelar, a câmera segue ativa
 $("#file").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-  try { busy("Preparando sua foto..."); await openEditor(await toBitmap(f)); }
-  catch (err) { busy(); toast(err.message === "size" ? "Essa foto é muito grande. Escolha outra." : "Não conseguimos abrir essa imagem. Tente outra foto."); show("home"); }
+  try {
+    busy("Preparando sua foto...");
+    const bmp = await toBitmap(f);
+    if (!$("#camera").hidden) await pauseCamera($("#video"));
+    await openEditor(bmp);
+  } catch (err) {
+    busy();
+    toast(err.message === "size" ? "Essa foto é muito grande. Escolha outra." : "Não conseguimos abrir essa imagem. Tente outra foto.");
+    if ($("#camera").hidden) show("home");
+  }
 };
 
+// ---- Câmera
 $("#btnCamera").onclick = async () => {
   if (await cameraPermission() === "denied") {
     return toast("A câmera está bloqueada para este site. Libere nas configurações do navegador ou use \"Escolher da galeria\".");
@@ -102,29 +121,34 @@ $("#btnCamera").onclick = async () => {
     await startCamera($("#video"), getFacing());
     await applyFlash();
     busy(); show("camera");
+    centerActivePill(false);
   } catch (e) {
     busy(); releaseCamera();
     toast(e.name === "NotAllowedError" ? "Permita o acesso à câmera ou use \"Escolher da galeria\"." : "Câmera indisponível. Use \"Escolher da galeria\".");
   }
 };
 $("#flip").onclick = async () => {
-  spinFlipIcon();
+  if (flipping) return; flipping = true; spinFlipIcon();
   try { await startCamera($("#video"), getFacing() === "user" ? "environment" : "user"); await applyFlash(); }
   catch { toast("Não foi possível trocar de câmera."); }
+  finally { flipping = false; }
 };
 $("#camClose").onclick = async () => { await endFlash(); await pauseCamera($("#video")); show("home"); };
 $("#shutter").onclick = async () => {
   if (shooting) return; shooting = true;
-  const video = $("#video"), lit = flashOn && !hasTorch();
+  const video = $("#video"), light = screenLight(), lit = flashOn && !hasTorch();
   try {
-    if (lit) { $("#camFlash").classList.add("lit"); await wait(250); }   // flash de tela
+    if (lit) { light.classList.add(light.id === "screenLight" ? "on" : "lit"); await wait(350); }   // tela branca ilumina o rosto
     const p = snap(video);
-    $("#camFlash").classList.remove("lit"); triggerFlash();
+    light.classList.remove("on", "lit"); triggerFlash();
     await endFlash(); await pauseCamera(video);
     await wait(180);
     await openEditor(p);
-  } catch { $("#camFlash").classList.remove("lit"); busy(); toast("Não conseguimos tirar a foto. Tente novamente."); }
-  finally { shooting = false; }
+  } catch {
+    light.classList.remove("on", "lit"); busy();
+    toast("Não conseguimos tirar a foto. Tente novamente.");
+    if (!$("#camera").hidden) await resumeCameraView();   // não deixa a câmera parada
+  } finally { shooting = false; }
 };
 $("#redo").onclick = () => show("home");
 
@@ -164,11 +188,9 @@ refreshCount();
 
 // ---- Ciclo de vida da câmera
 addEventListener("pagehide", releaseCamera);
-document.addEventListener("visibilitychange", async () => {
-  const camOpen = !$("#camera").hidden;
-  if (!document.hidden && camOpen) {                          // voltou com a câmera aberta: reativa se o sistema a derrubou
-    try { await startCamera($("#video"), getFacing()); } catch {}
-  }
+addEventListener("pageshow", e => { if (e.persisted && !$("#camera").hidden) resumeCameraView(); });   // voltou pelo cache do navegador
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && !$("#camera").hidden) resumeCameraView();   // voltou ao site com a câmera aberta
 });
 
 show("home");

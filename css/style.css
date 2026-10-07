@@ -162,13 +162,6 @@ h1{font:600 clamp(2rem,9vw,2.8rem)/1.1 var(--serif);margin:0 0 1rem;color:var(--
 .flash-overlay.on{opacity:.9;transition:none}
 
 .top-bar{position:absolute;top:calc(1rem + env(safe-area-inset-top));left:1rem;right:1rem;z-index:20;display:flex;justify-content:space-between;align-items:center}
-.btn-icon{width:2.5rem;height:2.5rem;border-radius:50%;border:0;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;font-size:1.1rem;display:flex;align-items:center;justify-content:center}
-
-.btn-icon-flash{width:2.5rem;height:2.5rem;border-radius:50%;border:0;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;font-size:1.1rem;display:flex;align-items:center;justify-content:center}
-
-.btn-icon-flash img {
-  padding: 1px 0px 1px 6px;
-}
 
 .spacer{width:2.5rem;height:2.5rem}
 .live-indicator{display:flex;align-items:center;gap:.5rem;padding:.375rem .875rem;border-radius:999px;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:.7rem;font-weight:500}
@@ -228,21 +221,6 @@ h1{font:600 clamp(2rem,9vw,2.8rem)/1.1 var(--serif);margin:0 0 1rem;color:var(--
   padding:.5rem 1rem
 }
 
-.gallery-picker-btn{
-  width:2.5rem;
-  height:2.5rem;
-  border-radius:1rem;
-  border:1px solid rgba(255,255,255,.6);background:rgba(30,41,59,.8);
-  color:#fff;
-  font-size:1.2rem;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:transform .2s
-}
-
-.gallery-picker-btn:active{transform:scale(.92)}
-
 .shutter-btn{
   width:3rem;
   height:3rem;
@@ -268,26 +246,44 @@ h1{font:600 clamp(2rem,9vw,2.8rem)/1.1 var(--serif);margin:0 0 1rem;color:var(--
 
 .shutter-btn:active .shutter-inner{transform:scale(.85)}
 
+/* Botões redondos da câmera: fechar, flash, galeria e trocar câmera */
+.btn-icon,
+.btn-icon-flash,
+.gallery-picker-btn,
 .flip-btn{
-  width:2.5rem;
-  height:2.5rem;
-  border-radius:1rem;
-  border:1px solid rgba(255,255,255,.6);background:rgba(30,41,59,.8);  background:rgba(255,255,255,.2);
+  width:2.75rem;
+  height:2.75rem;
+  padding:0;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.35);
+  background:rgba(0,0,0,.4);
   -webkit-backdrop-filter:blur(12px);
   backdrop-filter:blur(12px);
   color:#fff;
-  font-size:1.2rem;
+  font-size:1.1rem;
+  line-height:1;
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:transform .2s
-}
+  transition:transform .2s,background .2s,border-color .2s}
+.btn-icon:active,
+.btn-icon-flash:active,
+.gallery-picker-btn:active,
+.flip-btn:active{transform:scale(.92)}
 
-.flip-btn:active{transform:scale(.9)}
-#flipIcon{display:inline-block;transition:transform .4s ease}
+.btn-icon img,
+.btn-icon-flash img,
+.gallery-picker-btn img,
+.flip-btn img{width:1.4rem;height:1.4rem;object-fit:contain;display:block}
+.btn-icon svg{width:1.25rem;height:1.25rem;display:block}
+
+.btn-icon-flash[aria-pressed=true]{background:#fcd34d;border-color:#fcd34d}
+.btn-icon-flash[aria-pressed=true] img{filter:brightness(0)}
+
+.flip-btn img{transition:transform .4s ease}
 
 .flash-overlay.lit{opacity:1;transition:opacity .08s}
-.btn-icon[aria-pressed=true]{background:#fcd34d;color:#1c2d42}
+
 
 /* Editor */
 .edit{display:flex;flex-direction:column;max-width:520px;margin:auto}
