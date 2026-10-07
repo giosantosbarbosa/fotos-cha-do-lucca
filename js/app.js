@@ -32,7 +32,6 @@ function centerActivePill(smooth = true) {
   document.querySelector('.frame-pill[aria-pressed="true"]')
     ?.scrollIntoView({ inline: "center", block: "nearest", behavior: smooth ? "smooth" : "auto" });
 }
-
 function selectFrame(f) {
   state.frame = f;
   const img = $("#camFrame");
@@ -40,7 +39,6 @@ function selectFrame(f) {
   const id = f ? f.id : "none";
   document.querySelectorAll(".thumb,.frame-pill").forEach(t => t.setAttribute("aria-pressed", t.dataset.id === id));
   if (!$("#editor").hidden && state.photo) draw();
-  centerActivePill();
 }
 async function buildThumbs(box, pill = false) {
   box.innerHTML = "";
@@ -104,7 +102,6 @@ $("#btnCamera").onclick = async () => {
     await startCamera($("#video"), getFacing());
     await applyFlash();
     busy(); show("camera");
-    centerActivePill(false);
   } catch (e) {
     busy(); releaseCamera();
     toast(e.name === "NotAllowedError" ? "Permita o acesso à câmera ou use \"Escolher da galeria\"." : "Câmera indisponível. Use \"Escolher da galeria\".");
