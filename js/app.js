@@ -179,6 +179,16 @@ $("#redo").onclick = async () => {
   if (ok) await openCamera();
 };
 
+$("#editClose").onclick = async () => {
+  const ok = await ask({
+    title: "Fechar a edição?",
+    text: "A foto atual será descartada e você voltará para a tela inicial.",
+    ok: "Sim, fechar",
+    cancel: "Continuar editando"
+  });
+  if (ok) show("home");
+};
+
 // ---- Salvar / Enviar
 $("#save").onclick = async () => {
   try {
@@ -202,7 +212,7 @@ $("#send").onclick = async () => {
   if (!ok) return;
   try {
     busy("Preparando sua foto..."); const b = await exportBlob(canvas);
-    busy("Enviando sua foto 💕", 0); await uploadBlob(b, p => busy("Enviando sua foto 💕", p));
+    busy("Enviando sua foto 💕", 0); await uploadBlob(b, p => busy("Enviando sua foto...", p));
     busy(); $("#done").hidden = false;
     refreshCount();
   } catch { busy(); toast("Não conseguimos enviar a foto. Verifique sua conexão e tente novamente."); }

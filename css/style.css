@@ -405,3 +405,28 @@ body:not(.gal){height:100dvh;overflow:hidden;overscroll-behavior:none}
 .overlay .btn{min-height:52px;border-radius:16px;border:1px solid #0d1141;background:#fff;color:#0d1141;font-weight:600}
 .overlay .btn.primary{background:#0d1141;color:#fff}
 .overlay .btn.ghost{background:transparent;border-color:transparent}
+
+/* Botão de fechar do editor (canto superior direito) */
+.edit-close{
+  position:absolute;
+  top:calc(.75rem + env(safe-area-inset-top));
+  right:1rem;
+  z-index:5;
+  width:2.75rem;height:2.75rem;
+  padding:0;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  border:1px solid #0d114126;
+  background:#ffffffcc;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  color:#0d1141;
+  box-shadow:0 4px 15px #1b2b4c0f;
+  transition:transform .2s,background .2s;
+}
+.edit-close:active{transform:scale(.92)}
+.edit-close:hover{background:#fff}
+.edit-close svg{width:22px;height:22px;display:block;pointer-events:none}
+
+/* Abre espaço no topo para o botão não cobrir a foto */
+.edit #canvas{top:4rem;max-height:calc(100% - 4.75rem)}
+.edit::after{top:84px}
