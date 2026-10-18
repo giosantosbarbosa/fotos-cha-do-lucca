@@ -15,7 +15,7 @@ export async function startCamera(video, mode = facing) {
     video.srcObject = stream; mirror(video, mode); await video.play(); return;
   }
   releaseCamera(); facing = mode;
-  const hd = { width: { ideal: 4096 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } };
+    const hd = { width: { ideal: 4096 }, height: { ideal: 2160 }, frameRate: { ideal: 30 }, resizeMode: { ideal: "none" } };
   const tries = [
     { facingMode: { exact: mode }, ...hd },
     { facingMode: { ideal: mode }, ...hd },
@@ -28,6 +28,9 @@ export async function startCamera(video, mode = facing) {
   }
   video.srcObject = stream; mirror(video, mode);
   await video.play();
+    video.srcObject = stream; mirror(video, mode);
+  await video.play();
+  await tune();
 }
 
 // Só pausa: desliga as trilhas (sem pedir permissão de novo ao reabrir) e apaga a lanterna.
@@ -52,3 +55,38 @@ export function snap(video) {
   ctx.drawImage(video, 0, 0);
   return c;
 }
+
+// ---- Controles de câmera (só funcionam se o aparelho suportar)
+const track = () => stream?.getVideoTracks()[0];
+const caps = () => track()?.getCapabilities?.() || {};
+async function apply(adv) {
+  const t = track(); if (!t) return false;
+  try { await t.applyConstraints({ advanced: [adv] }); return true; } catch { return false; }
+}
+// Liga foco, exposição e balanço de branco automáticos contínuos
+async function tune() {
+  const c = caps();
+  for (const k of ["focusMode", "exposureMode", "whiteBalanceMode"]) {
+    if (Array.isArray(c[k]) && c[k].includes("continuous")) await apply({ [k]: "continuous" });
+  }
+}
+// Toque para focar: x e y vão de 0 a 1. Retorna true se o aparelho tem foco ajustável.
+export async function focusAt(x, y) {
+  const c = caps(), modes = c.focusMode || [], pt = [{ x, y }];
+  if (!modes.length) return false;
+  if (modes.includes("single-shot")) {
+    await apply({ pointsOfInterest: pt, focusMode: "single-shot" });
+    await new Promise(r => setTimeout(r, 900));
+  }
+  if ((c.exposureMode || []).includes("continuous")) await apply({ pointsOfInterest: pt, exposureMode: "continuous" });
+  if (modes.includes("continuous")) await apply({ pointsOfInterest: pt, focusMode: "continuous" });
+  return true;
+}
+// Brilho (compensação de exposição)
+export function exposureRange() {
+  const c = caps().exposureCompensation;
+  if (!c || !(c.max > c.min)) return null;
+  return { min: c.min, max: c.max, step: c.step || 0.1, value: track()?.getSettings?.().exposureCompensation ?? 0 };
+}
+export const setExposure = v => apply({ exposureCompensation: v });
+export const capsInfo = () => JSON.stringify(caps());   // só para diagnósticos

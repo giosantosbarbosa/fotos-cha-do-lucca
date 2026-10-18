@@ -552,3 +552,13 @@ body.gal .viewer .v-stage{
 .v-bottom > *{pointer-events:auto}
 .v-bottom .btn{width:min(100%,360px)}
 .viewer .note{margin:0;padding:.5rem .9rem;border-radius:12px;background:#0b0f36cc;color:#fff;font-size:.85rem}
+
+/* Toque para focar + brilho */
+.focus-ring{position:absolute;z-index:15;width:72px;height:72px;margin:-36px 0 0 -36px;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #0004;pointer-events:none;opacity:0}
+.focus-ring.go{animation:focus-pop 1.1s ease-out forwards}
+@keyframes focus-pop{0%{opacity:0;transform:scale(1.5)}20%{opacity:1}35%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.focus-ring.go{opacity:1}}
+
+.exp-box{position:absolute;z-index:25;left:50%;bottom:5.5rem;transform:translateX(-50%);display:flex;align-items:center;gap:.6rem;padding:.5rem .9rem;border-radius:999px;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);color:#fff}
+.exp-box svg{width:20px;height:20px;flex:none}
+.exp-box input{width:min(52vw,200px);accent-color:#fff}

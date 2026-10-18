@@ -1,6 +1,6 @@
 import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
-import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission, hasTorch, setTorch } from "./camera.js?v=11";
+import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission, hasTorch, setTorch, focusAt, exposureRange, setExposure, capsInfo } from "./camera.js?v=12";
 import { compose, exportBlob, saveImage } from "./editor.js";
 import { uploadBlob, configured, listPhotos } from "./upload.js?v=11";
 const $ = s => document.querySelector(s);
@@ -102,6 +102,38 @@ $("#camFlashBtn").onclick = async () => { flashOn = !flashOn; if (hasTorch()) aw
 async function resumeCameraView() {
   try { await startCamera($("#video"), getFacing()); } catch {}
 }
+
+// ---- Toque para focar e brilho
+let ringT, expT, expOn = false;
+function setupExposure() {
+  const r = exposureRange(), inp = $("#expRange");
+  expOn = !!r; $("#expBox").hidden = true;
+  if (r) { inp.min = r.min; inp.max = r.max; inp.step = r.step; inp.value = r.value; }
+}
+$("#video").addEventListener("playing", setupExposure);   // roda sempre que a câmera (re)inicia
+function showRing(clientX, clientY) {
+  const ring = $("#focusRing"), vf = $(".viewfinder").getBoundingClientRect();
+  ring.style.left = clientX - vf.left + "px"; ring.style.top = clientY - vf.top + "px";
+  ring.hidden = false; ring.classList.remove("go"); void ring.offsetWidth; ring.classList.add("go");
+  clearTimeout(ringT); ringT = setTimeout(() => (ring.hidden = true), 1200);
+}
+function showExposure() {
+  if (!expOn) return;
+  $("#expBox").hidden = false;
+  clearTimeout(expT); expT = setTimeout(() => ($("#expBox").hidden = true), 3500);
+}
+$(".viewfinder").addEventListener("click", async e => {
+  const v = $("#video");
+  if (e.target !== v || !v.videoWidth) return;               // ignora toques em botões e controles
+  const r = v.getBoundingClientRect(), s = Math.max(r.width / v.videoWidth, r.height / v.videoHeight);
+  const dw = v.videoWidth * s, dh = v.videoHeight * s;       // o vídeo é recortado (object-fit: cover)
+  let x = ((e.clientX - r.left) - (r.width - dw) / 2) / dw;
+  const y = ((e.clientY - r.top) - (r.height - dh) / 2) / dh;
+  if (getFacing() === "user") x = 1 - x;                     // a prévia da frontal é espelhada
+  const ok = await focusAt(Math.min(1, Math.max(0, x)), Math.min(1, Math.max(0, y)));
+  if (ok) { showRing(e.clientX, e.clientY); showExposure(); }
+});
+$("#expRange").oninput = e => { setExposure(+e.target.value); showExposure(); };
 
 // ---- Entrada de foto
 $("#btnPick").onclick = () => $("#file").click();
