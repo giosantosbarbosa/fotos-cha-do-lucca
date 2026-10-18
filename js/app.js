@@ -18,6 +18,22 @@ function busy(msg, pct) {
 }
 $("#manualClose").onclick = () => { $("#manual").hidden = true; };
 
+// ---- Pop-up de confirmação (usado em "Refazer" e "Enviar")
+function ask({ title, text, ok, cancel }) {
+  return new Promise(resolve => {
+    const box = $("#confirm"), btnOk = $("#confirmOk"), btnNo = $("#confirmCancel");
+    $("#confirmTitle").textContent = title;
+    $("#confirmMsg").textContent = text;
+    btnOk.textContent = ok;
+    btnNo.textContent = cancel;
+    const end = v => { box.hidden = true; btnOk.onclick = null; btnNo.onclick = null; resolve(v); };
+    btnOk.onclick = () => end(true);
+    btnNo.onclick = () => end(false);
+    box.hidden = false;
+    btnOk.focus();
+  });
+}
+
 // ---- Foto de entrada
 async function toBitmap(file) {
   if (!file.type.startsWith("image/")) throw new Error("type");
@@ -105,9 +121,10 @@ $("#file").onchange = async e => {
 };
 
 // ---- Câmera
-$("#btnCamera").onclick = async () => {
+async function openCamera() {
   if (await cameraPermission() === "denied") {
-    return toast("A câmera está bloqueada para este site. Libere nas configurações do navegador ou use \"Escolher da galeria\".");
+    toast("A câmera está bloqueada para este site. Libere nas configurações do navegador ou use \"Escolher da galeria\".");
+    return false;
   }
   busy("Abrindo câmera...");
   try {
@@ -118,11 +135,16 @@ $("#btnCamera").onclick = async () => {
     await applyFlash();
     busy(); show("camera");
     centerActivePill(false);
+    return true;
   } catch (e) {
     busy(); releaseCamera();
     toast(e.name === "NotAllowedError" ? "Permita o acesso à câmera ou use \"Escolher da galeria\"." : "Câmera indisponível. Use \"Escolher da galeria\".");
+    return false;
   }
-};
+}
+$("#btnCamera").onclick = openCamera;
+
+
 $("#flip").onclick = async () => {
   if (flipping) return; flipping = true; 
   try { await startCamera($("#video"), getFacing() === "user" ? "environment" : "user"); await applyFlash(); }
@@ -146,7 +168,16 @@ $("#shutter").onclick = async () => {
     if (!$("#camera").hidden) await resumeCameraView();   // não deixa a câmera parada
   } finally { shooting = false; }
 };
-$("#redo").onclick = () => show("home");
+
+$("#redo").onclick = async () => {
+  const ok = await ask({
+    title: "Refazer a foto?",
+    text: "A foto atual será descartada e a câmera será aberta novamente.",
+    ok: "Sim, refazer",
+    cancel: "Continuar editando"
+  });
+  if (ok) await openCamera();
+};
 
 // ---- Salvar / Enviar
 $("#save").onclick = async () => {
@@ -157,10 +188,18 @@ $("#save").onclick = async () => {
     else if (r === "downloaded") toast("Foto salva! 💕");
   } catch { busy(); toast("Não conseguimos salvar a foto. Tente novamente."); }
 };
+
 $("#send").onclick = async () => {
   if (isExpired()) return toast("O envio de fotos foi encerrado. A galeria continua disponível.");
   if (!configured()) return toast("O envio ainda não está configurado.");
   if (!navigator.onLine) return toast("Sem internet. Conecte-se e tente novamente.");
+  const ok = await ask({
+    title: "Enviar para a galeria?",
+    text: "As fotos salvas na galeria serão visíveis para todos os convidados.",
+    ok: "Enviar",
+    cancel: "Cancelar"
+  });
+  if (!ok) return;
   try {
     busy("Preparando sua foto..."); const b = await exportBlob(canvas);
     busy("Enviando sua foto 💕", 0); await uploadBlob(b, p => busy("Enviando sua foto 💕", p));
@@ -168,7 +207,12 @@ $("#send").onclick = async () => {
     refreshCount();
   } catch { busy(); toast("Não conseguimos enviar a foto. Verifique sua conexão e tente novamente."); }
 };
-$("#doneNew").onclick = () => { $("#done").hidden = true; show("home"); };
+
+
+$("#doneNew").onclick = async () => {
+  $("#done").hidden = true;
+  if (!(await openCamera())) show("home");   // se a câmera falhar, volta para o início
+};
 
 // ---- Contador
 async function refreshCount() {

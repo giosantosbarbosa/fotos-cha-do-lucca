@@ -150,22 +150,32 @@
 </section>
 
 <section id="editor" class="view edit" hidden aria-label="Editor">
-  <div class="stage"><canvas id="canvas" aria-label="Prévia da foto com moldura"></canvas></div>
-  <div class="panel">
-    <p class="label">Escolha sua moldura</p>
-    <div id="thumbs" class="thumbs" role="group"></div>
-    <div class="row">
-      <button class="btn ghost" id="redo">↩ Refazer</button>
-      <button class="btn" id="save">💾 Salvar</button>
-    </div>
-    <button class="btn primary" id="send">💕 Enviar para a galeria</button>
-  </div>
+<div class="stage"><canvas id="canvas" aria-label="Prévia da foto com moldura"></canvas></div>
+<div class="panel">
+<p class="label">Escolha sua moldura</p>
+<div id="thumbs" class="thumbs" role="group"></div>
+<div class="row">
+<button class="btn ghost" id="redo">
+<svg class="ico-l" viewBox="0 0 24 24" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+<span>Refazer</span>
+</button>
+<button class="btn" id="save">
+<svg class="ico-l" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+<span>Salvar no celular</span>
+</button>
+</div>
+<button class="btn primary" id="send">
+<svg class="ico-l" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+<span>Enviar para a galeria</span>
+</button>
+</div>
 </section>
 
 <input type="file" id="file" accept="image/*" hidden>
 <div id="busy" class="overlay" hidden role="status" aria-live="polite"><div class="card"><div class="spin"></div><p id="busyMsg"></p><div id="bar" class="bar" hidden><i></i></div></div></div>
 <div id="done" class="overlay" hidden role="dialog" aria-modal="true"><div class="card"><p class="big">Foto enviada! 💕</p><a class="btn primary" href="galeria.html">Ver galeria</a><button class="btn ghost" id="doneNew">Tirar outra</button></div></div>
 <div id="manual" class="overlay" hidden role="dialog" aria-modal="true"><div class="card"><p>Pressione e segure a foto e escolha <b>Salvar em Fotos</b>.</p><img id="manualImg" alt="Sua foto"><button class="btn" id="manualClose">Fechar</button></div></div>
+<div id="confirm" class="overlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="card"><p class="big" id="confirmTitle"></p><p id="confirmMsg"></p><button class="btn primary" id="confirmOk"></button><button class="btn ghost" id="confirmCancel"></button></div></div>
 <div id="toast" class="toast" hidden role="alert"></div>
 </body>
 </html>

@@ -350,3 +350,58 @@ body:not(.gal){height:100dvh;overflow:hidden;overscroll-behavior:none}
   color: #0b0f36;
   fill: #0b0f36;
 }
+
+/* ===== Editor com a identidade da tela inicial ===== */
+.edit{
+  position:relative;
+  max-width:448px;
+  background:radial-gradient(circle at 50% 20%,#fff 0%,#ebf4fb 60%,#e2effa 100%);
+}
+@media(min-width:768px){
+  .edit{height:min(840px,calc(100dvh - 48px));margin:24px auto;border-radius:40px;border:1px solid #fff9;box-shadow:0 25px 50px #0003}
+}
+.edit::before,.edit::after{content:"★";position:absolute;font-size:.85rem;opacity:.6;pointer-events:none;z-index:0}
+.edit::before{top:18px;left:24px;color:#7dd3fc}
+.edit::after{top:44px;right:32px;color:#fcd34d}
+.edit .stage{z-index:1}
+#canvas{border-radius:20px;box-shadow:0 10px 30px #0d114126}
+
+/* Painel inferior igual ao "dock" da home */
+.edit .panel{
+  position:relative;z-index:1;
+  padding:1.25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+  gap:.75rem;
+  background:#ffffffb8;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-top:1px solid #fffc;
+  border-radius:32px 32px 0 0;
+  box-shadow:0 -4px 20px #0000000d;
+}
+.edit .label{font:600 .75rem var(--sans);letter-spacing:.15em;text-transform:uppercase;color:#64748b;text-align:center}
+
+/* Molduras */
+.edit .thumbs{gap:.75rem;padding:.5rem;scrollbar-width:none}
+.edit .thumbs::-webkit-scrollbar{display:none}
+.edit .thumb{color:#475569;font-size:.75rem;font-weight:600}
+.edit .thumb span{display:block;margin-top:.25rem;line-height:1.2}
+.edit .thumb img{border-radius:14px;border:2px solid #fff;box-shadow:0 2px 8px #0d114126;background:#e2e8f0}
+.edit .thumb[aria-pressed=true] img{border-color:#0d1141;transform:scale(1.06)}
+.edit .thumb[aria-pressed=true] span{color:#0d1141;font-weight:700;text-decoration:none}
+
+/* Botões iguais aos da home */
+.edit .btn{min-height:56px;padding:0 1.5rem;gap:.75rem;border-radius:16px;font-size:1rem;font-weight:600;border:1px solid #0d1141;background:#fff;color:#0d1141;box-shadow:0 1px 2px #0000000d}
+.edit .btn.primary{background:#0d1141;border-color:#0d1141;color:#fff;box-shadow:0 4px 6px -1px #4f557333,0 2px 4px -2px #4f557333}
+.edit .btn.primary:hover{background:#3D425C;border-color:#3D425C}
+.edit .btn.ghost{background:transparent;border-color:transparent;box-shadow:none}
+.edit .row{grid-template-columns:auto 1fr;gap:.75rem}
+.edit .row .btn{padding:0 1rem;gap:.5rem}
+.edit .ico-l{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(max-height:720px){.edit .btn{min-height:48px}}
+
+/* Pop-ups (confirmação, "foto enviada", "salvar manual") no mesmo estilo */
+.overlay .card{border-radius:28px;box-shadow:0 25px 50px #0003}
+.card .big{color:#0d1141}
+.card #confirmMsg{color:#475569;font-size:.95rem;line-height:1.5}
+.overlay .btn{min-height:52px;border-radius:16px;border:1px solid #0d1141;background:#fff;color:#0d1141;font-weight:600}
+.overlay .btn.primary{background:#0d1141;color:#fff}
+.overlay .btn.ghost{background:transparent;border-color:transparent}
