@@ -3,6 +3,8 @@ import { APP_CONFIG as C } from "./config.js";
 export function compose(canvas, photo, frame) {
   const W = canvas.width = C.outputWidth, H = canvas.height = C.outputHeight, ctx = canvas.getContext("2d");
   const pw = photo.width, ph = photo.height, s = Math.max(W / pw, H / ph);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
   ctx.drawImage(photo, (W - pw * s) / 2, (H - ph * s) / 2, pw * s, ph * s);
   if (frame) ctx.drawImage(frame, 0, 0, W, H);
@@ -15,7 +17,7 @@ export async function exportBlob(canvas) {
     while (b.size > max && q > 0.55) { q -= 0.08; b = await toBlob(canvas, "image/webp", q); }
     return b;
   }
-  q = 0.88; b = await toBlob(canvas, "image/jpeg", q);
+  q = 0.92; b = await toBlob(canvas, "image/jpeg", q);
   while (b && b.size > max && q > 0.55) { q -= 0.08; b = await toBlob(canvas, "image/jpeg", q); }
   if (!b) throw new Error("canvas");
   return b;

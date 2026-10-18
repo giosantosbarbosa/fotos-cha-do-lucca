@@ -6,8 +6,8 @@ export const APP_CONFIG = {
   galleryTitle: "Memórias do nosso chá",
   outputWidth: 1080,
   outputHeight: 1920,
-  webpQuality: 0.88,
-  maxFinalSizeMB: 2,
+  webpQuality: 0.92,
+  maxFinalSizeMB: 2.8,
   maxPhotoSizeMB: 25,
   eventExpirationDate: "2026-11-02", // após esta data, novos envios são bloqueados
   galleryRefreshSeconds: 20,

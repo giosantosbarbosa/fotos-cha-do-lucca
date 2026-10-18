@@ -15,11 +15,17 @@ export async function startCamera(video, mode = facing) {
     video.srcObject = stream; mirror(video, mode); await video.play(); return;
   }
   releaseCamera(); facing = mode;
-  const tries = [{ facingMode: { exact: mode } }, { facingMode: { ideal: mode } }, true];
-for (const v of tries) {
-  try { stream = await navigator.mediaDevices.getUserMedia({ video: v, audio: false }); break; }
-  catch (e) { if (v === true || !["OverconstrainedError", "NotFoundError"].includes(e.name)) throw e; }
-}
+  const hd = { width: { ideal: 4096 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } };
+  const tries = [
+    { facingMode: { exact: mode }, ...hd },
+    { facingMode: { ideal: mode }, ...hd },
+    { facingMode: { ideal: mode } },
+    true
+  ];
+  for (const v of tries) {
+    try { stream = await navigator.mediaDevices.getUserMedia({ video: v, audio: false }); break; }
+    catch (e) { if (v === true || !["OverconstrainedError", "NotFoundError"].includes(e.name)) throw e; }
+  }
   video.srcObject = stream; mirror(video, mode);
   await video.play();
 }

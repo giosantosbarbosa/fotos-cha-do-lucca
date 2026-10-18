@@ -244,3 +244,5 @@ document.addEventListener("visibilitychange", () => {
 });
 
 show("home");
+
+
