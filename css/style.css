@@ -430,3 +430,125 @@ body:not(.gal){height:100dvh;overflow:hidden;overscroll-behavior:none}
 /* Abre espaço no topo para o botão não cobrir a foto */
 .edit #canvas{top:4rem;max-height:calc(100% - 4.75rem)}
 .edit::after{top:84px}
+
+/* ===== Galeria com a identidade da home ===== */
+body.gal{
+  min-height:100dvh;
+  background:radial-gradient(circle at 50% 0%,#fff 0%,#ebf4fb 55%,#e2effa 100%) fixed;
+}
+
+/* Cabeçalho fixo, igual ao "dock" da home */
+.gal .ghead{
+  position:sticky;top:0;z-index:5;
+  display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .75rem;
+  padding:calc(.75rem + env(safe-area-inset-top)) 1rem .9rem;
+  background:#ffffffb8;
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-bottom:1px solid #fffc;
+  border-radius:0 0 28px 28px;
+  box-shadow:0 4px 20px #0000000d;
+}
+.gal .back{
+  display:inline-flex;align-items:center;gap:.25rem;
+  min-height:40px;padding:0 1rem 0 .6rem;
+  border-radius:999px;border:1px solid #0d1141;background:#fff;
+  color:#0d1141;font-size:.85rem;font-weight:600;
+  box-shadow:0 1px 2px #0000000d;
+}
+.gal .back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.gal .ghead h1{
+  flex:1 1 100%;margin:0;
+  font:400 clamp(1.9rem,8vw,2.4rem)/1.15 var(--script);
+  letter-spacing:.02em;color:var(--text);text-shadow:0 1px 2px #0001;
+}
+
+/* Fotos como "cartões" */
+.gal .grid{padding:16px 14px;column-gap:12px}
+.gal .tile{
+  margin-bottom:12px;
+  border:2px solid #fff;
+  border-radius:18px;
+  box-shadow:0 6px 18px #0d114126;
+  transition:transform .15s;
+}
+.gal .tile:active{transform:scale(.98)}
+
+/* Mensagens e botão "Carregar mais" */
+.gal .note{color:#475569;font-size:.9rem}
+.gal .more{
+  width:min(100% - 2rem,320px);
+  min-height:52px;border-radius:16px;
+  border:1px solid #0d1141;background:#fff;color:#0d1141;
+  font-weight:600;box-shadow:0 1px 2px #0000000d;
+}
+
+/* Botões do pop-up de foto no mesmo estilo */
+.gal .overlay .btn{min-height:52px;border-radius:16px;border:1px solid #0d1141;background:#fff;color:#0d1141;font-weight:600}
+.gal .overlay .btn.ghost{background:transparent;border-color:transparent}
+
+/* ===== Visualizador de foto em tela cheia ===== */
+.viewer{padding:0;background:#0b0f36;z-index:40;display:block;animation:fade .2s}
+body.gal .viewer .v-stage{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  touch-action:none;            /* a pinça age só na foto, não na página */
+  user-select:none;-webkit-user-select:none;
+}
+.viewer #big{
+  width:auto;height:auto;max-width:100%;max-height:100%;
+  object-fit:contain;
+  transform-origin:center;
+  will-change:transform;
+  transition:opacity .2s;
+  -webkit-user-drag:none;
+}
+.viewer #big.anim{transition:opacity .2s,transform .2s ease-out}
+
+/* Barra superior: contador + fechar */
+.v-top{
+  position:absolute;top:0;left:0;right:0;z-index:2;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:calc(.75rem + env(safe-area-inset-top)) 1rem 1.5rem;
+  background:linear-gradient(#0b0f36cc,transparent);
+  pointer-events:none;
+}
+.v-top > *{pointer-events:auto}
+.v-count{
+  padding:.375rem .875rem;border-radius:999px;
+  background:rgba(0,0,0,.4);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;font-size:.8rem;font-weight:600;
+}
+
+/* Botões redondos (iguais aos da câmera) */
+.v-btn{
+  width:2.75rem;height:2.75rem;padding:0;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.35);
+  background:rgba(0,0,0,.4);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  color:#fff;transition:transform .2s,opacity .2s;
+}
+.v-btn:active{transform:scale(.92)}
+.v-btn svg{width:24px;height:24px;display:block;pointer-events:none}
+.v-btn[disabled]{opacity:.3;pointer-events:none}
+
+/* Setas */
+.v-nav{position:absolute;top:50%;margin-top:-1.375rem;z-index:2}
+.v-nav.prev{left:.75rem}
+.v-nav.next{right:.75rem}
+.viewer.zoomed .v-nav{opacity:0;pointer-events:none}   /* some quando a foto está ampliada */
+
+/* Parte de baixo: aviso + salvar */
+.v-bottom{
+  position:absolute;bottom:0;left:0;right:0;z-index:2;
+  display:grid;justify-items:center;gap:.6rem;
+  padding:1.5rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  background:linear-gradient(transparent,#0b0f36cc);
+  pointer-events:none;
+}
+.v-bottom > *{pointer-events:auto}
+.v-bottom .btn{width:min(100%,360px)}
+.viewer .note{margin:0;padding:.5rem .9rem;border-radius:12px;background:#0b0f36cc;color:#fff;font-size:.85rem}
