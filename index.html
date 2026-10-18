@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20">
+<link rel="stylesheet" href="css/style.css?v=22">
 <script type="module" src="js/app.js?v=20"></script>
 </head>
 <body>
@@ -117,35 +117,36 @@
 
   <!-- CAMERA CONTAINER OVERLAY (ESTILO INSTAGRAM STORIES) -->
 <section id="camera" class="view camera-container" hidden aria-label="Câmera">
-  <div class="viewfinder">
-    <video id="video" playsinline muted autoplay></video>
-    <img id="camFrame" class="cam-frame" alt="" hidden>
-    <div id="camFlash" class="flash-overlay" aria-hidden="true"></div>
+<div class="viewfinder">
+<video id="video" playsinline muted autoplay></video>
+<img id="camFrame" class="cam-frame" alt="" hidden>
+<div id="camFlash" class="flash-overlay" aria-hidden="true"></div>
 
-    <div class="top-bar">
-      <button type="button" class="btn-icon" id="camClose" aria-label="Fechar câmera">✕</button>
-      <button type="button" class="btn-icon-flash" id="camFlashBtn" aria-label="Ligar flash" aria-pressed="false">
-        <img src="assets/img/flash.png" alt="Ligar flash" aria-hidden="true">
-      </button>
-    </div>
-    
-    <div class="shutter-bar">
-        <button type="button" class="gallery-picker-btn" id="camPick" aria-label="Escolher da galeria">
-          <img src="assets/img/gallery.png" alt="Escolher da galeria" aria-hidden="true">
-        </button>
-        <button type="button" id="shutter" class="shutter-btn" aria-label="Tirar foto"><span class="shutter-inner"></span></button>
-        <button type="button" class="flip-btn" id="flip" aria-label="Trocar câmera">
-          <img src="assets/img/switch-camera.png" alt="Trocar câmera" aria-hidden="true">
-        </button>
-      </div>
-  </div>
-  
-  <div class="bottom-controls">
-      <div class="carousel-container">
-        <div class="carousel-track" id="camThumbs" role="group" aria-label="Molduras"></div>
-      </div>
-    </div>
- 
+<div class="top-bar">
+<button type="button" class="btn-icon" id="camClose" aria-label="Fechar câmera">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+</button>
+<button type="button" class="btn-icon-flash" id="camFlashBtn" aria-label="Ligar flash" aria-pressed="false">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+</button>
+</div>
+
+<div class="shutter-bar">
+<button type="button" class="gallery-picker-btn" id="camPick" aria-label="Escolher da galeria">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+</button>
+<button type="button" id="shutter" class="shutter-btn" aria-label="Tirar foto"><span class="shutter-inner"></span></button>
+<button type="button" class="flip-btn" id="flip" aria-label="Trocar câmera">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+</button>
+</div>
+</div>
+
+<div class="bottom-controls">
+<div class="carousel-container">
+<div class="carousel-track" id="camThumbs" role="group" aria-label="Molduras"></div>
+</div>
+</div>
 </section>
 
 <section id="editor" class="view edit" hidden aria-label="Editor">

@@ -280,14 +280,8 @@ body:not(.gal){height:100dvh;overflow:hidden;overscroll-behavior:none}
 .gallery-picker-btn:active,
 .flip-btn:active{transform:scale(.92)}
 
-.btn-icon img,
-.btn-icon-flash img,
-.gallery-picker-btn img,
-.flip-btn img{width:1.4rem;height:1.4rem;object-fit:contain;display:block}
-.btn-icon svg{width:1.25rem;height:1.25rem;display:block}
-
 .btn-icon-flash[aria-pressed=true]{background:#fcd34d;border-color:#fcd34d}
-.btn-icon-flash[aria-pressed=true] img{filter:brightness(0)}
+
 
 .flash-overlay.lit{opacity:1;transition:opacity .08s}
 
@@ -338,3 +332,21 @@ body:not(.gal){height:100dvh;overflow:hidden;overscroll-behavior:none}
 @media(min-width:768px){.grid{columns:4 200px}}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Ícones da câmera em SVG (nítidos em qualquer tela) */
+.btn-icon svg,
+.btn-icon-flash svg,
+.gallery-picker-btn svg,
+.flip-btn svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  color: #fff;
+  pointer-events: none;
+}
+
+/* Flash ligado: fundo amarelo (regra acima) e ícone escuro preenchido */
+.btn-icon-flash[aria-pressed="true"] svg {
+  color: #0b0f36;
+  fill: #0b0f36;
+}
