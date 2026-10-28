@@ -12,11 +12,13 @@ export async function startCamera(video, mode = facing) {
   if (!navigator.mediaDevices?.getUserMedia) throw new Error("unsupported");
   if (alive() && mode === facing) {            // reaproveita a câmera aberta: não pede permissão de novo
     stream.getTracks().forEach(t => (t.enabled = true));
+    video.srcObject = null;                    // iOS/Safari: recria a camada de vídeo (evita o vídeo "encolhido" ao reabrir)
     video.srcObject = stream; mirror(video, mode); await video.play(); return;
   }
   releaseCamera(); facing = mode;
+  // Pede a maior resolução possível; "ideal" não dá erro se o aparelho não tiver
   const hd = { width: { ideal: 4096 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } };
-    const tries = [
+  const tries = [
     { facingMode: { exact: mode }, ...hd },
     { facingMode: { ideal: mode }, ...hd },
     { facingMode: { ideal: mode } },
@@ -27,8 +29,6 @@ export async function startCamera(video, mode = facing) {
     catch (e) { if (v === true || !["OverconstrainedError", "NotFoundError"].includes(e.name)) throw e; }
   }
   video.srcObject = stream; mirror(video, mode);
-  await video.play();
-    video.srcObject = stream; mirror(video, mode);
   await video.play();
   await tune();
 }
@@ -89,4 +89,4 @@ export function exposureRange() {
   return { min: c.min, max: c.max, step: c.step || 0.1, value: track()?.getSettings?.().exposureCompensation ?? 0 };
 }
 export const setExposure = v => apply({ exposureCompensation: v });
-export const capsInfo = () => JSON.stringify(caps());   // só para diagnósticos
+export const capsInfo = () => JSON.stringify(caps());   // só para diagnóstico

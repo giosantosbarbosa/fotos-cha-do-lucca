@@ -167,6 +167,15 @@ $("#file").onchange = async e => {
   }
 };
 
+let lastRelayout = 0;
+function relayoutVideo() {                        // Safari/iOS às vezes mantém o vídeo com tamanho errado ao reabrir
+  if ($("#camera").hidden || Date.now() - lastRelayout < 500) return;
+  lastRelayout = Date.now();
+  const v = $("#video");
+  requestAnimationFrame(() => requestAnimationFrame(() => { v.style.display = "none"; void v.offsetHeight; v.style.display = ""; }));
+}
+$("#video").addEventListener("resize", relayoutVideo);
+
 // ---- Câmera
 async function openCamera() {
   if (await cameraPermission() === "denied") {
@@ -181,6 +190,7 @@ async function openCamera() {
     await startCamera($("#video"), getFacing());
     await applyFlash();
     busy(); show("camera");
+    relayoutVideo();
     centerActivePill(false);
     return true;
   } catch (e) {

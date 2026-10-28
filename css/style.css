@@ -566,3 +566,13 @@ body.gal .viewer .v-stage{
 /* Salvar e Compartilhar lado a lado no visualizador */
 .v-actions{display:flex;gap:.6rem;width:min(100%,360px)}
 .v-bottom .v-actions .btn{flex:1;width:auto;min-width:0;padding:0 .5rem;font-size:.92rem;white-space:nowrap}
+
+/* Editor compacto: dá espaço à prévia da foto em celulares */
+.edit #canvas{top:3.5rem;max-height:calc(100% - 4rem)}
+.edit .panel{padding:.75rem 1.25rem calc(.9rem + env(safe-area-inset-bottom));gap:.5rem}
+.edit .label{font-size:.68rem}
+.edit .thumbs{padding:.25rem}
+.edit .thumb{width:52px;font-size:.68rem}
+.edit .thumb img{width:52px;height:82px;border-radius:10px}
+.edit .btn{min-height:46px}
+.edit .row .btn{white-space:nowrap;font-size:.9rem}
