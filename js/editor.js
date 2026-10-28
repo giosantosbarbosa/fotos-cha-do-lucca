@@ -36,3 +36,18 @@ export async function saveImage(blob, name = "foto-cha.webp") {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   return "downloaded";
 }
+// JPEG só para compartilhar (Instagram e WhatsApp aceitam melhor que WebP)
+export async function exportJpeg(canvas) {
+  const max = C.maxFinalSizeMB * 1048576;
+  let q = 0.92, b = await toBlob(canvas, "image/jpeg", q);
+  while (b && b.size > max && q > 0.55) { q -= 0.08; b = await toBlob(canvas, "image/jpeg", q); }
+  if (!b) throw new Error("canvas");
+  return b;
+}
+// Retorna "shared" | "cancelled" | "unsupported"
+export async function shareImage(blob, name = "foto-cha-do-lucca.jpg") {
+  const file = new File([blob], name, { type: blob.type });
+  if (!navigator.canShare?.({ files: [file] })) return "unsupported";
+  try { await navigator.share({ files: [file] }); return "shared"; }
+  catch (e) { return e.name === "AbortError" ? "cancelled" : "unsupported"; }
+}

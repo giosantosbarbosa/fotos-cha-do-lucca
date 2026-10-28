@@ -1,7 +1,7 @@
 import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
 import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission, hasTorch, setTorch, focusAt, exposureRange, setExposure, capsInfo } from "./camera.js?v=12";
-import { compose, exportBlob, saveImage } from "./editor.js";
+import { compose, exportBlob, exportJpeg, saveImage, shareImage } from "./editor.js?v=2";
 import { uploadBlob, configured, listPhotos } from "./upload.js?v=11";
 const $ = s => document.querySelector(s);
 applyTheme();
@@ -42,11 +42,24 @@ async function toBitmap(file) {
   return await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(file); });
 }
 
+// ---- Compartilhar (menu do celular: Instagram, WhatsApp...)
+const shareBtn = $("#share");
+const canShareFiles = (() => {
+  try { return !!navigator.canShare?.({ files: [new File([""], "a.jpg", { type: "image/jpeg" })] }); } catch { return false; }
+})();
+if (shareBtn) shareBtn.hidden = !canShareFiles;     // só aparece se o aparelho suportar
+let shareBlob = null, shareJob = 0;
+function prepareShare() {                           // gera o JPEG antes do toque, para o menu abrir na hora
+  shareBlob = null; const job = ++shareJob;
+  if (!canShareFiles) return;
+  exportJpeg(canvas).then(b => { if (job === shareJob) shareBlob = b; }).catch(() => {});
+}
+
 // ---- Molduras
 async function ensureFrames() {
   if (!state.frames.length) { state.frames = await loadFrames(); state.frame = state.frames[0] || null; }
 }
-function draw() { compose(canvas, state.photo, state.frame?.img); }
+function draw() { compose(canvas, state.photo, state.frame?.img); prepareShare(); }
 function centerActivePill(smooth = true) {
   document.querySelector('.frame-pill[aria-pressed="true"]')
     ?.scrollIntoView({ inline: "center", block: "nearest", behavior: smooth ? "smooth" : "auto" });
@@ -104,15 +117,17 @@ async function resumeCameraView() {
 }
 
 // ---- Toque para focar e brilho
+// (os elementos #focusRing, #expBox e #expRange vêm do index.html; sem eles, o foco simplesmente não aparece)
 let ringT, expT, expOn = false;
 function setupExposure() {
-  const r = exposureRange(), inp = $("#expRange");
-  expOn = !!r; $("#expBox").hidden = true;
-  if (r) { inp.min = r.min; inp.max = r.max; inp.step = r.step; inp.value = r.value; }
+  const r = exposureRange(), inp = $("#expRange"), box = $("#expBox");
+  expOn = !!(r && inp && box); if (box) box.hidden = true;
+  if (r && inp) { inp.min = r.min; inp.max = r.max; inp.step = r.step; inp.value = r.value; }
 }
 $("#video").addEventListener("playing", setupExposure);   // roda sempre que a câmera (re)inicia
 function showRing(clientX, clientY) {
   const ring = $("#focusRing"), vf = $(".viewfinder").getBoundingClientRect();
+  if (!ring) return;
   ring.style.left = clientX - vf.left + "px"; ring.style.top = clientY - vf.top + "px";
   ring.hidden = false; ring.classList.remove("go"); void ring.offsetWidth; ring.classList.add("go");
   clearTimeout(ringT); ringT = setTimeout(() => (ring.hidden = true), 1200);
@@ -133,7 +148,7 @@ $(".viewfinder").addEventListener("click", async e => {
   const ok = await focusAt(Math.min(1, Math.max(0, x)), Math.min(1, Math.max(0, y)));
   if (ok) { showRing(e.clientX, e.clientY); showExposure(); }
 });
-$("#expRange").oninput = e => { setExposure(+e.target.value); showExposure(); };
+if ($("#expRange")) $("#expRange").oninput = e => { setExposure(+e.target.value); showExposure(); };
 
 // ---- Entrada de foto
 $("#btnPick").onclick = () => $("#file").click();
@@ -221,7 +236,7 @@ $("#editClose").onclick = async () => {
   if (ok) show("home");
 };
 
-// ---- Salvar / Enviar
+// ---- Salvar / Compartilhar / Enviar
 $("#save").onclick = async () => {
   try {
     busy("Preparando sua foto..."); const b = await exportBlob(canvas); busy();
@@ -229,6 +244,14 @@ $("#save").onclick = async () => {
     if (r === "manual") { $("#manualImg").src = URL.createObjectURL(b); $("#manual").hidden = false; }
     else if (r === "downloaded") toast("Foto salva! 💕");
   } catch { busy(); toast("Não conseguimos salvar a foto. Tente novamente."); }
+};
+
+if (shareBtn) shareBtn.onclick = async () => {
+  try {
+    const b = shareBlob || await exportJpeg(canvas);
+    const r = await shareImage(b);
+    if (r === "unsupported") toast("Não foi possível abrir o compartilhamento. Use \"Salvar no celular\" e envie pelo app.");
+  } catch { toast("Não conseguimos compartilhar a foto. Tente novamente."); }
 };
 
 $("#send").onclick = async () => {
@@ -276,5 +299,3 @@ document.addEventListener("visibilitychange", () => {
 });
 
 show("home");
-
-
