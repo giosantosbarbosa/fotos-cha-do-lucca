@@ -562,3 +562,7 @@ body.gal .viewer .v-stage{
 .exp-box{position:absolute;z-index:25;left:50%;bottom:5.5rem;transform:translateX(-50%);display:flex;align-items:center;gap:.6rem;padding:.5rem .9rem;border-radius:999px;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);color:#fff}
 .exp-box svg{width:20px;height:20px;flex:none}
 .exp-box input{width:min(52vw,200px);accent-color:#fff}
+
+/* Salvar e Compartilhar lado a lado no visualizador */
+.v-actions{display:flex;gap:.6rem;width:min(100%,360px)}
+.v-bottom .v-actions .btn{flex:1;width:auto;min-width:0;padding:0 .5rem;font-size:.92rem;white-space:nowrap}

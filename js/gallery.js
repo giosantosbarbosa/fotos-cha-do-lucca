@@ -8,6 +8,38 @@ const big = $("#big"), stage = $("#vstage");
 const HINT = "Pressione e segure a foto para salvar.";
 const seen = new Set(); let offset = 0, current;
 
+// ---- Compartilhar (menu do celular: Instagram, WhatsApp...)
+const canShareFiles = (() => {
+  try { return !!navigator.canShare?.({ files: [new File([""], "a.jpg", { type: "image/jpeg" })] }); } catch { return false; }
+})();
+const shareBtn = $("#vshare");
+if (shareBtn) shareBtn.hidden = !canShareFiles;
+
+async function toJpeg(blob) {                     // a galeria guarda WebP; Instagram e WhatsApp preferem JPEG
+  if (blob.type === "image/jpeg") return blob;
+  let bmp;
+  try { bmp = await createImageBitmap(blob); }
+  catch {
+    bmp = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(blob); });
+  }
+  const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
+  const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(bmp, 0, 0);
+  return new Promise((ok, no) => c.toBlob(b => (b ? ok(b) : no(new Error("canvas"))), "image/jpeg", 0.92));
+}
+const jpegOf = async n => toJpeg(await (await fetch(publicUrl(n))).blob());
+let shareBlob = null, shareFor = null;
+function prepareShare(n) {                        // converte em segundo plano, para o menu abrir na hora do toque
+  shareBlob = null; shareFor = n;
+  if (!canShareFiles) return;
+  jpegOf(n).then(b => { if (shareFor === n) shareBlob = b; }).catch(() => {});
+}
+async function shareJpeg(blob, name) {
+  const file = new File([blob], name, { type: "image/jpeg" });
+  if (!navigator.canShare?.({ files: [file] })) return "unsupported";
+  try { await navigator.share({ files: [file] }); return "shared"; }
+  catch (e) { return e.name === "AbortError" ? "cancelled" : "unsupported"; }
+}
+
 function card(n, prepend) {
   if (seen.has(n)) return; seen.add(n);
   const b = document.createElement("button"); b.className = "tile"; b.setAttribute("aria-label", "Ampliar foto");
@@ -36,6 +68,7 @@ function open(n) {
   const url = publicUrl(n);
   if (big.getAttribute("src") !== url) { big.style.opacity = 0; big.src = url; }
   $("#hint").textContent = HINT; $("#hint").hidden = true;
+    prepareShare(n);
   const list = names(), i = list.indexOf(n);
   $("#vcount").textContent = `${i + 1} / ${list.length}${more.hidden ? "" : "+"}`;
   $("#vprev").disabled = i <= 0;
@@ -150,6 +183,14 @@ $("#vsave").onclick = async () => {
     const b = await (await fetch(publicUrl(current))).blob();
     if (await saveImage(b, current) === "manual") $("#hint").hidden = false;
   } catch { $("#hint").textContent = "Não conseguimos salvar. Tente novamente."; $("#hint").hidden = false; }
+};
+if (shareBtn) shareBtn.onclick = async () => {
+  const n = current;
+  try {
+    const b = (shareFor === n && shareBlob) || await jpegOf(n);
+    const r = await shareJpeg(b, n.replace(/\.\w+$/, "") + ".jpg");
+    if (r === "unsupported") { $("#hint").textContent = "Não foi possível abrir o compartilhamento. Use \"Salvar no celular\"."; $("#hint").hidden = false; }
+  } catch { $("#hint").textContent = "Não conseguimos compartilhar. Tente novamente."; $("#hint").hidden = false; }
 };
 more.onclick = loadMore;
 if (!configured()) $("#err").hidden = false;
