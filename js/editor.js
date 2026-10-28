@@ -5,6 +5,7 @@ export function compose(canvas, photo, frame) {
   const pw = photo.width, ph = photo.height, s = Math.max(W / pw, H / ph);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
   ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, H);
   ctx.drawImage(photo, (W - pw * s) / 2, (H - ph * s) / 2, pw * s, ph * s);
   if (frame) ctx.drawImage(frame, 0, 0, W, H);

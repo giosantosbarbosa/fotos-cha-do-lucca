@@ -15,8 +15,8 @@ export async function startCamera(video, mode = facing) {
     video.srcObject = stream; mirror(video, mode); await video.play(); return;
   }
   releaseCamera(); facing = mode;
-    const hd = { width: { ideal: 4096 }, height: { ideal: 2160 }, frameRate: { ideal: 30 }, resizeMode: { ideal: "none" } };
-  const tries = [
+  const hd = { width: { ideal: 4096 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } };
+    const tries = [
     { facingMode: { exact: mode }, ...hd },
     { facingMode: { ideal: mode }, ...hd },
     { facingMode: { ideal: mode } },
