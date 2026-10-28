@@ -2,6 +2,7 @@ let stream, facing = "environment";
 export const getFacing = () => facing;
 const alive = () => !!stream && stream.getVideoTracks().some(t => t.readyState === "live");
 const mirror = (video, mode) => { video.style.transform = mode === "user" ? "scaleX(-1)" : "none"; };
+const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
 // "granted" | "denied" | "prompt" | "unknown" (Safari antigo não informa)
 export async function cameraPermission() {
@@ -10,9 +11,14 @@ export async function cameraPermission() {
 
 export async function startCamera(video, mode = facing) {
   if (!navigator.mediaDevices?.getUserMedia) throw new Error("unsupported");
-  if (alive() && mode === facing) {            // reaproveita a câmera aberta: não pede permissão de novo
+  const open = alive() && mode === facing;
+  // Já está rodando: nada a fazer (ex.: voltou ao site com a câmera aberta)
+  if (open && !video.paused && video.srcObject === stream && stream.getTracks().every(t => t.enabled)) return;
+  // Reaproveita a câmera pausada (Android/computador). No iPhone o vídeo reaproveitado volta "encolhido",
+  // então lá a câmera é aberta de novo, como na primeira vez.
+  if (open && !IOS) {
     stream.getTracks().forEach(t => (t.enabled = true));
-    video.srcObject = null;                    // iOS/Safari: recria a camada de vídeo (evita o vídeo "encolhido" ao reabrir)
+    video.srcObject = null;
     video.srcObject = stream; mirror(video, mode); await video.play(); return;
   }
   releaseCamera(); facing = mode;
@@ -33,10 +39,12 @@ export async function startCamera(video, mode = facing) {
   await tune();
 }
 
-// Só pausa: desliga as trilhas (sem pedir permissão de novo ao reabrir) e apaga a lanterna.
+// Pausa: desliga as trilhas e apaga a lanterna. No iPhone a câmera é liberada de vez.
 export async function pauseCamera(video) {
   await setTorch(false);
-  video.pause(); stream?.getTracks().forEach(t => (t.enabled = false));
+  video.pause();
+  if (IOS) { releaseCamera(); video.srcObject = null; return; }
+  stream?.getTracks().forEach(t => (t.enabled = false));
 }
 export const hasTorch = () => !!stream?.getVideoTracks()[0]?.getCapabilities?.().torch;
 export async function setTorch(on) {

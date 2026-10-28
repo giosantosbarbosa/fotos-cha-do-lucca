@@ -1,6 +1,6 @@
 import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
-import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission, hasTorch, setTorch, focusAt, exposureRange, setExposure, capsInfo } from "./camera.js?v=12";
+import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission, hasTorch, setTorch, focusAt, exposureRange, setExposure, capsInfo } from "./camera.js?v=13";
 import { compose, exportBlob, exportJpeg, saveImage, shareImage } from "./editor.js?v=2";
 import { uploadBlob, configured, listPhotos } from "./upload.js?v=11";
 const $ = s => document.querySelector(s);
@@ -190,8 +190,6 @@ async function openCamera() {
     await startCamera($("#video"), getFacing());
     await applyFlash();
     busy(); show("camera");
-    relayoutVideo();
-        setTimeout(() => { const v = $("#video"), r = v.getBoundingClientRect(); toast(`${v.videoWidth}x${v.videoHeight} | caixa ${Math.round(r.width)}x${Math.round(r.height)}`); }, 600);
     centerActivePill(false);
     return true;
   } catch (e) {
