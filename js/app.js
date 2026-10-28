@@ -191,6 +191,7 @@ async function openCamera() {
     await applyFlash();
     busy(); show("camera");
     relayoutVideo();
+        setTimeout(() => { const v = $("#video"), r = v.getBoundingClientRect(); toast(`${v.videoWidth}x${v.videoHeight} | caixa ${Math.round(r.width)}x${Math.round(r.height)}`); }, 600);
     centerActivePill(false);
     return true;
   } catch (e) {
