@@ -8,8 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=27">
-<link rel="stylesheet" href="css/style.css?v=27">
+<link rel="stylesheet" href="css/style.css?v=31">
 <script type="text/javascript">
     (function(c,l,a,r,i,t,y){
         c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -17,7 +16,6 @@
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
     })(window, document, "clarity", "script", "yzf090og19");
 </script>
-</head>
 </head>
 <body class="gal">
 <header class="ghead"><a class="link back" href="./" aria-label="Voltar ao início"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg><span>Início</span></a><h1 data-cfg="galleryTitle">Galeria</h1></header>
@@ -46,9 +44,12 @@
 <button class="btn" id="vsave">Salvar no celular</button>
 <button class="btn" id="vshare" hidden>Compartilhar</button>
 </div>
+<button class="btn ghost" id="vdel" hidden>Excluir minha foto</button>
 </div>
 </div>
 
-<script type="module" src="js/gallery.js?v=12"></script>
+<div id="confirm" class="overlay" hidden role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle"><div class="card"><p class="big" id="confirmTitle"></p><p id="confirmMsg"></p><button class="btn primary" id="confirmOk"></button><button class="btn ghost" id="confirmCancel"></button></div></div>
+
+<script type="module" src="js/gallery.js?v=14"></script>
 </body>
 </html>

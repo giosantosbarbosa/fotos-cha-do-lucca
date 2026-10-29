@@ -576,3 +576,7 @@ body.gal .viewer .v-stage{
 .edit .thumb img{width:52px;height:82px;border-radius:10px}
 .edit .btn{min-height:46px}
 .edit .row .btn{white-space:nowrap;font-size:.9rem}
+/* Excluir minha foto (fundo escuro) e pop-up por cima do visualizador */
+.gal .viewer.overlay .btn.ghost{color:#fff;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.35);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.gal .viewer.overlay .btn[disabled]{opacity:.5;pointer-events:none}
+#confirm{z-index:50}
