@@ -2,7 +2,7 @@ import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
 import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission, hasTorch, setTorch, focusAt, exposureRange, setExposure, capsInfo } from "./camera.js?v=15";
 import { compose, exportBlob, exportJpeg, saveImage, shareImage } from "./editor.js?v=2";
-import { uploadBlob, configured, listPhotos } from "./upload.js?v=11";
+import { uploadBlob, configured, listPhotos } from "./upload.js?v=12";
 const $ = s => document.querySelector(s);
 applyTheme();
 const state = { photo: null, frame: null, frames: [] };

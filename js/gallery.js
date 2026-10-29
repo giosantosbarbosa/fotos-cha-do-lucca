@@ -1,5 +1,5 @@
 import { APP_CONFIG as C, applyTheme } from "./config.js";
-import { listPhotos, publicUrl, configured } from "./upload.js?v=11";
+import { listPhotos, publicUrl, configured, isMine, deletePhoto } from "./upload.js?v=12";
 import { saveImage } from "./editor.js";
 applyTheme();
 const $ = s => document.querySelector(s);
@@ -7,38 +7,6 @@ const grid = $("#grid"), more = $("#more"), empty = $("#empty"), dlg = $("#viewe
 const big = $("#big"), stage = $("#vstage");
 const HINT = "Pressione e segure a foto para salvar.";
 const seen = new Set(); let offset = 0, current;
-
-// ---- Compartilhar (menu do celular: Instagram, WhatsApp...)
-const canShareFiles = (() => {
-  try { return !!navigator.canShare?.({ files: [new File([""], "a.jpg", { type: "image/jpeg" })] }); } catch { return false; }
-})();
-const shareBtn = $("#vshare");
-if (shareBtn) shareBtn.hidden = !canShareFiles;
-
-async function toJpeg(blob) {                     // a galeria guarda WebP; Instagram e WhatsApp preferem JPEG
-  if (blob.type === "image/jpeg") return blob;
-  let bmp;
-  try { bmp = await createImageBitmap(blob); }
-  catch {
-    bmp = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(blob); });
-  }
-  const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
-  const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(bmp, 0, 0);
-  return new Promise((ok, no) => c.toBlob(b => (b ? ok(b) : no(new Error("canvas"))), "image/jpeg", 0.92));
-}
-const jpegOf = async n => toJpeg(await (await fetch(publicUrl(n))).blob());
-let shareBlob = null, shareFor = null;
-function prepareShare(n) {                        // converte em segundo plano, para o menu abrir na hora do toque
-  shareBlob = null; shareFor = n;
-  if (!canShareFiles) return;
-  jpegOf(n).then(b => { if (shareFor === n) shareBlob = b; }).catch(() => {});
-}
-async function shareJpeg(blob, name) {
-  const file = new File([blob], name, { type: "image/jpeg" });
-  if (!navigator.canShare?.({ files: [file] })) return "unsupported";
-  try { await navigator.share({ files: [file] }); return "shared"; }
-  catch (e) { return e.name === "AbortError" ? "cancelled" : "unsupported"; }
-}
 
 function card(n, prepend) {
   if (seen.has(n)) return; seen.add(n);
@@ -59,6 +27,36 @@ async function refresh() {
   try { (await listPhotos(0, 30)).reverse().forEach(n => card(n, true)); empty.hidden = seen.size > 0; } catch {}
 }
 
+// ---- Compartilhar (menu do celular: Instagram, WhatsApp...)
+const canShareFiles = (() => {
+  try { return !!navigator.canShare?.({ files: [new File([""], "a.jpg", { type: "image/jpeg" })] }); } catch { return false; }
+})();
+const shareBtn = $("#vshare");
+if (shareBtn) shareBtn.hidden = !canShareFiles;
+
+async function toJpeg(blob) {                     // a galeria guarda WebP; Instagram e WhatsApp preferem JPEG
+  if (blob.type === "image/jpeg") return blob;
+  let bmp;
+  try { bmp = await createImageBitmap(blob); }
+  catch { bmp = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(blob); }); }
+  const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
+  const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(bmp, 0, 0);
+  return new Promise((ok, no) => c.toBlob(b => (b ? ok(b) : no(new Error("canvas"))), "image/jpeg", 0.92));
+}
+const jpegOf = async n => toJpeg(await (await fetch(publicUrl(n))).blob());
+let shareBlob = null, shareFor = null;
+function prepareShare(n) {                        // converte em segundo plano, para o menu abrir na hora do toque
+  shareBlob = null; shareFor = n;
+  if (!canShareFiles) return;
+  jpegOf(n).then(b => { if (shareFor === n) shareBlob = b; }).catch(() => {});
+}
+async function shareJpeg(blob, name) {
+  const file = new File([blob], name, { type: "image/jpeg" });
+  if (!navigator.canShare?.({ files: [file] })) return "unsupported";
+  try { await navigator.share({ files: [file] }); return "shared"; }
+  catch (e) { return e.name === "AbortError" ? "cancelled" : "unsupported"; }
+}
+
 // ---- Visualizador (tela cheia, zoom e navegação)
 const names = () => [...grid.querySelectorAll(".tile")].map(t => t.dataset.name);
 
@@ -68,7 +66,8 @@ function open(n) {
   const url = publicUrl(n);
   if (big.getAttribute("src") !== url) { big.style.opacity = 0; big.src = url; }
   $("#hint").textContent = HINT; $("#hint").hidden = true;
-    prepareShare(n);
+  $("#vdel").hidden = !isMine(n);                 // só aparece nas fotos enviadas por este aparelho
+  prepareShare(n);
   const list = names(), i = list.indexOf(n);
   $("#vcount").textContent = `${i + 1} / ${list.length}${more.hidden ? "" : "+"}`;
   $("#vprev").disabled = i <= 0;
@@ -89,7 +88,7 @@ $("#vclose").onclick = close;
 $("#vprev").onclick = () => go(-1);
 $("#vnext").onclick = () => go(1);
 addEventListener("keydown", e => {
-  if (dlg.hidden) return;
+  if (dlg.hidden || !$("#confirm").hidden) return;   // ignora enquanto o pop-up de confirmação está aberto
   if (e.key === "Escape") close();
   else if (e.key === "ArrowRight") go(1);
   else if (e.key === "ArrowLeft") go(-1);
@@ -177,7 +176,41 @@ stage.addEventListener("wheel", e => {               // roda do mouse / trackpad
 ["gesturestart", "gesturechange"].forEach(t => dlg.addEventListener(t, e => e.preventDefault()));   // impede zoom da página no Safari
 addEventListener("resize", () => { if (!dlg.hidden) { limit(); render(); } });
 
-// ---- Salvar
+// ---- Excluir minha foto
+function ask({ title, text, ok, cancel }) {
+  return new Promise(resolve => {
+    const box = $("#confirm"), btnOk = $("#confirmOk"), btnNo = $("#confirmCancel");
+    $("#confirmTitle").textContent = title; $("#confirmMsg").textContent = text;
+    btnOk.textContent = ok; btnNo.textContent = cancel;
+    const end = v => { box.hidden = true; btnOk.onclick = null; btnNo.onclick = null; resolve(v); };
+    btnOk.onclick = () => end(true); btnNo.onclick = () => end(false);
+    box.hidden = false; btnNo.focus();
+  });
+}
+function removeCard(n) {
+  const i = names().indexOf(n);
+  grid.querySelector(`.tile[data-name="${CSS.escape(n)}"]`)?.remove();   // continua em "seen": a atualização automática não a traz de volta
+  offset = Math.max(0, offset - 1);                                       // mantém a paginação alinhada
+  const rest = names();
+  empty.hidden = rest.length > 0;
+  if (!rest.length) return close();
+  open(rest[Math.min(i, rest.length - 1)]);
+}
+$("#vdel").onclick = async () => {
+  const n = current, btn = $("#vdel");
+  const ok = await ask({
+    title: "Excluir esta foto?",
+    text: "Ela será removida da galeria para todos os convidados. Essa ação não pode ser desfeita.",
+    ok: "Sim, excluir", cancel: "Cancelar"
+  });
+  if (!ok) return;
+  btn.disabled = true;
+  try { await deletePhoto(n); removeCard(n); }
+  catch { $("#hint").textContent = "Não conseguimos excluir esta foto. Tente novamente."; $("#hint").hidden = false; $("#vdel").hidden = !isMine(n); }
+  finally { btn.disabled = false; }
+};
+
+// ---- Salvar e Compartilhar
 $("#vsave").onclick = async () => {
   try {
     const b = await (await fetch(publicUrl(current))).blob();
@@ -192,6 +225,7 @@ if (shareBtn) shareBtn.onclick = async () => {
     if (r === "unsupported") { $("#hint").textContent = "Não foi possível abrir o compartilhamento. Use \"Salvar no celular\"."; $("#hint").hidden = false; }
   } catch { $("#hint").textContent = "Não conseguimos compartilhar. Tente novamente."; $("#hint").hidden = false; }
 };
+
 more.onclick = loadMore;
 if (!configured()) $("#err").hidden = false;
 else { loadMore(); setInterval(refresh, C.galleryRefreshSeconds * 1000); }
