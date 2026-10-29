@@ -2,7 +2,6 @@ let stream, facing = "environment";
 export const getFacing = () => facing;
 const alive = () => !!stream && stream.getVideoTracks().some(t => t.readyState === "live");
 const mirror = (video, mode) => { video.style.transform = mode === "user" ? "scaleX(-1)" : "none"; };
-const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
 // "granted" | "denied" | "prompt" | "unknown" (Safari antigo não informa)
 export async function cameraPermission() {
@@ -14,16 +13,14 @@ export async function startCamera(video, mode = facing) {
   const open = alive() && mode === facing;
   // Já está rodando: nada a fazer (ex.: voltou ao site com a câmera aberta)
   if (open && !video.paused && video.srcObject === stream && stream.getTracks().every(t => t.enabled)) return;
-  // Reaproveita a câmera pausada (Android/computador). No iPhone o vídeo reaproveitado volta "encolhido",
-  // então lá a câmera é aberta de novo, como na primeira vez.
-  if (open && !IOS) {
+  if (open) {                                  // reaproveita a câmera pausada: não pede permissão de novo
     stream.getTracks().forEach(t => (t.enabled = true));
-    video.srcObject = null;
     video.srcObject = stream; mirror(video, mode); await video.play(); return;
   }
   releaseCamera(); facing = mode;
-  // Pede a maior resolução possível; "ideal" não dá erro se o aparelho não tiver
-  const hd = { width: { ideal: 4096 }, height: { ideal: 2160 }, frameRate: { ideal: 30 } };
+  // Full HD: a foto final é 1080x1920; resoluções maiores pesam na memória do iPhone sem ganho visível.
+  // Para subir (ex.: se a saída passar de 1080x1920), aumente aqui, por exemplo 2560 x 1440.
+  const hd = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } };
   const tries = [
     { facingMode: { exact: mode }, ...hd },
     { facingMode: { ideal: mode }, ...hd },
@@ -39,12 +36,10 @@ export async function startCamera(video, mode = facing) {
   await tune();
 }
 
-// Pausa: desliga as trilhas e apaga a lanterna. No iPhone a câmera é liberada de vez.
+// Só pausa: desliga as trilhas (sem pedir permissão de novo ao reabrir) e apaga a lanterna.
 export async function pauseCamera(video) {
   await setTorch(false);
-  video.pause();
-  if (IOS) { releaseCamera(); video.srcObject = null; return; }
-  stream?.getTracks().forEach(t => (t.enabled = false));
+  video.pause(); stream?.getTracks().forEach(t => (t.enabled = false));
 }
 export const hasTorch = () => !!stream?.getVideoTracks()[0]?.getCapabilities?.().torch;
 export async function setTorch(on) {

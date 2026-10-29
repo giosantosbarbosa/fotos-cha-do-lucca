@@ -1,6 +1,6 @@
 import { APP_CONFIG as C, applyTheme, isExpired } from "./config.js";
 import { loadFrames, thumbSrc } from "./frames.js";
-import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission, hasTorch, setTorch, focusAt, exposureRange, setExposure, capsInfo } from "./camera.js?v=13";
+import { startCamera, releaseCamera, pauseCamera, snap, getFacing, cameraPermission, hasTorch, setTorch, focusAt, exposureRange, setExposure, capsInfo } from "./camera.js?v=15";
 import { compose, exportBlob, exportJpeg, saveImage, shareImage } from "./editor.js?v=2";
 import { uploadBlob, configured, listPhotos } from "./upload.js?v=11";
 const $ = s => document.querySelector(s);
@@ -16,9 +16,9 @@ function busy(msg, pct) {
   const o = $("#busy"); o.hidden = !msg; $("#busyMsg").textContent = msg || "";
   $("#bar").hidden = pct == null; $("#bar i").style.width = (pct || 0) * 100 + "%";
 }
-$("#manualClose").onclick = () => { $("#manual").hidden = true; };
+$("#manualClose").onclick = () => { $("#manual").hidden = true; URL.revokeObjectURL($("#manualImg").src); };
 
-// ---- Pop-up de confirmação (usado em "Refazer" e "Enviar")
+// ---- Pop-up de confirmação (usado em "Refazer", "Fechar" e "Enviar")
 function ask({ title, text, ok, cancel }) {
   return new Promise(resolve => {
     const box = $("#confirm"), btnOk = $("#confirmOk"), btnNo = $("#confirmCancel");
@@ -91,6 +91,10 @@ async function buildThumbs(box, pill = false) {
     box.append(b);
   }
 }
+function releasePhoto() {                       // libera a memória da foto anterior (o iPhone tem limite de canvas)
+  state.photo = null; shareBlob = null; shareJob++;
+  canvas.width = canvas.height = 1;
+}
 async function openEditor(photo) {
   state.photo = photo; busy("Preparando sua foto...");
   await ensureFrames();
@@ -100,7 +104,7 @@ async function openEditor(photo) {
 
 // ---- Flash e efeitos da câmera
 // Lanterna real (Android/Chrome) ou "flash de tela" (iPhone e câmera frontal)
-let flashOn = false, shooting = false, flipping = false;
+let flashOn = false, shooting = false, flipping = false, opening = false;
 const screenLight = () => $("#screenLight") || $("#camFlash");
 function triggerFlash() {
   const f = $("#camFlash");
@@ -163,46 +167,40 @@ $("#file").onchange = async e => {
   } catch (err) {
     busy();
     toast(err.message === "size" ? "Essa foto é muito grande. Escolha outra." : "Não conseguimos abrir essa imagem. Tente outra foto.");
-    if ($("#camera").hidden) show("home");
+    if ($("#camera").hidden) show("home"); else await resumeCameraView();   // não deixa a câmera parada
   }
 };
 
-let lastRelayout = 0;
-function relayoutVideo() {                        // Safari/iOS às vezes mantém o vídeo com tamanho errado ao reabrir
-  if ($("#camera").hidden || Date.now() - lastRelayout < 500) return;
-  lastRelayout = Date.now();
-  const v = $("#video");
-  requestAnimationFrame(() => requestAnimationFrame(() => { v.style.display = "none"; void v.offsetHeight; v.style.display = ""; }));
-}
-$("#video").addEventListener("resize", relayoutVideo);
-
 // ---- Câmera
 async function openCamera() {
-  if (await cameraPermission() === "denied") {
-    toast("A câmera está bloqueada para este site. Libere nas configurações do navegador ou use \"Escolher da galeria\".");
-    return false;
-  }
-  busy("Abrindo câmera...");
+  if (opening) return false;                    // evita abrir duas vezes com toques repetidos
+  opening = true;
   try {
-    await ensureFrames();
-    await buildThumbs($("#camThumbs"), true);
-    selectFrame(state.frame);
-    await startCamera($("#video"), getFacing());
-    await applyFlash();
-    busy(); show("camera");
-    centerActivePill(false);
-    return true;
-  } catch (e) {
-    busy(); releaseCamera();
-    toast(e.name === "NotAllowedError" ? "Permita o acesso à câmera ou use \"Escolher da galeria\"." : "Câmera indisponível. Use \"Escolher da galeria\".");
-    return false;
-  }
+    if (await cameraPermission() === "denied") {
+      toast("A câmera está bloqueada para este site. Libere nas configurações do navegador ou use \"Escolher da galeria\".");
+      return false;
+    }
+    busy("Abrindo câmera...");
+    try {
+      await ensureFrames();
+      await buildThumbs($("#camThumbs"), true);
+      selectFrame(state.frame);
+      await startCamera($("#video"), getFacing());
+      await applyFlash();
+      busy(); show("camera");
+      centerActivePill(false);
+      return true;
+    } catch (e) {
+      busy(); releaseCamera();
+      toast(e.name === "NotAllowedError" ? "Permita o acesso à câmera ou use \"Escolher da galeria\"." : "Câmera indisponível. Use \"Escolher da galeria\".");
+      return false;
+    }
+  } finally { opening = false; }
 }
 $("#btnCamera").onclick = openCamera;
 
-
 $("#flip").onclick = async () => {
-  if (flipping) return; flipping = true; 
+  if (flipping) return; flipping = true;
   try { await startCamera($("#video"), getFacing() === "user" ? "environment" : "user"); await applyFlash(); }
   catch { toast("Não foi possível trocar de câmera."); }
   finally { flipping = false; }
@@ -232,7 +230,9 @@ $("#redo").onclick = async () => {
     ok: "Sim, refazer",
     cancel: "Continuar editando"
   });
-  if (ok) await openCamera();
+  if (!ok) return;
+  releasePhoto();
+  if (!(await openCamera())) show("home");      // se a câmera falhar, volta para o início (a foto já foi descartada)
 };
 
 $("#editClose").onclick = async () => {
@@ -242,7 +242,9 @@ $("#editClose").onclick = async () => {
     ok: "Sim, fechar",
     cancel: "Continuar editando"
   });
-  if (ok) show("home");
+  if (!ok) return;
+  releasePhoto();
+  show("home");
 };
 
 // ---- Salvar / Compartilhar / Enviar
@@ -282,9 +284,9 @@ $("#send").onclick = async () => {
   } catch { busy(); toast("Não conseguimos enviar a foto. Verifique sua conexão e tente novamente."); }
 };
 
-
 $("#doneNew").onclick = async () => {
   $("#done").hidden = true;
+  releasePhoto();
   if (!(await openCamera())) show("home");   // se a câmera falhar, volta para o início
 };
 
