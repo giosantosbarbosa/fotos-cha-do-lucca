@@ -1,5 +1,5 @@
 [
-  { "id": "principal", "name": "Chá do Lucca", "file": "assets/frames/principal.png", "thumbnail": "assets/frames/principal.png", "active": true },
-  { "id": "exemplo-01", "name": "Rosé", "file": "assets/frames/exemplo-01.png", "thumbnail": "assets/frames/exemplo-01.png", "active": true },
-  { "id": "exemplo-02", "name": "Lilás", "file": "assets/frames/exemplo-02.png", "thumbnail": "assets/frames/exemplo-02.png", "active": true }
+  { "id": "principal", "name": "Baloeiro", "file": "assets/frames/principal.png", "thumbnail": "assets/frames/principal.png", "active": true },
+  { "id": "moldura-2", "name": "Noite", "file": "assets/frames/moldura-2.png", "thumbnail": "assets/frames/moldura-2.png", "active": true },
+  { "id": "moldura-3", "name": "Corações", "file": "assets/frames/moldura-3.png", "thumbnail": "assets/frames/moldura-3.png", "active": true }
 ]
